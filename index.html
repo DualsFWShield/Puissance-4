@@ -271,8 +271,8 @@
     <script type="module">
         import { initializeApp } from 'https://www.gstatic.com/firebasejs/9.22.0/firebase-app.js';
         import { getAuth, signInWithEmailAndPassword, createUserWithEmailAndPassword, GoogleAuthProvider, signInWithPopup, onAuthStateChanged, updatePassword, linkWithPopup } from 'https://www.gstatic.com/firebasejs/9.22.0/firebase-auth.js';
-        import { getFirestore, collection, doc, setDoc, getDocs, serverTimestamp, updateDoc } from 'https://www.gstatic.com/firebasejs/9.22.0/firebase-firestore.js';
-        import { getDatabase, ref, push, set, onValue, update, onChildAdded } from 'https://www.gstatic.com/firebasejs/9.22.0/firebase-database.js';
+        import { getFirestore, collection, doc, setDoc, getDocs, serverTimestamp, updateDoc, deleteDoc } from 'https://www.gstatic.com/firebasejs/9.22.0/firebase-firestore.js';
+        import { getDatabase, ref, push, set, onValue, update, onChildAdded, remove } from 'https://www.gstatic.com/firebasejs/9.22.0/firebase-database.js';
 
         const firebaseConfig = {
           apiKey: "AIzaSyBmvD0pBikHRQlSj8VhGejiQufYsK2BsfQ",
@@ -334,8 +334,9 @@
         let isPlayingIA = false;
         let currentUser = null;
         let currentGameId = null;
-        let playerRole = null; // 'player1' ou 'player2'
+        let playerRole = null;
         let stats = { wins: 0, losses: 0, streak: 0 };
+        let processedInvites = new Set(); // Suivi des invitations traitées
 
         // Authentification
         onAuthStateChanged(auth, async user => {
@@ -386,7 +387,7 @@
                 setUsername(newUsername).then(() => {
                     newUsernameInput.value = '';
                     loadUserProfile();
-                    loadFriends(); // Mettre à jour les listes d’amis
+                    loadFriends();
                 });
             }
         });
@@ -831,9 +832,16 @@
         function listenForInvites() {
             const invitesRef = ref(realtimeDb, `invites/${currentUser.uid}`);
             onChildAdded(invitesRef, snapshot => {
+                const inviteId = snapshot.key;
                 const invite = snapshot.val();
-                if (confirm(`Vous avez été invité à rejoindre la partie ${invite.gameId} par ${invite.from}. Accepter ?`)) {
-                    joinGame(invite.gameId);
+                if (!processedInvites.has(inviteId)) { // Vérifier si l'invitation n'a pas été traitée
+                    processedInvites.add(inviteId);
+                    if (confirm(`Vous avez été invité à rejoindre la partie ${invite.gameId} par ${invite.from}. Accepter ?`)) {
+                        joinGame(invite.gameId);
+                    }
+                    // Supprimer l'invitation après affichage
+                    remove(ref(realtimeDb, `invites/${currentUser.uid}/${inviteId}`))
+                        .catch(error => console.error(`Erreur lors de la suppression de l'invitation : ${error.message}`));
                 }
             });
         }
