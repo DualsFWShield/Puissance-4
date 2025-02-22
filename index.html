@@ -37,9 +37,18 @@
             border-radius: 20px;
             box-shadow: 0 5px 15px rgba(0, 212, 255, 0.5);
             transition: transform 0.3s;
+            display: flex;
+            align-items: center;
+            gap: 10px;
         }
         .account-tab:hover {
             transform: translateY(-3px);
+        }
+        .account-pic {
+            width: 30px;
+            height: 30px;
+            border-radius: 50%;
+            display: none;
         }
         .game-wrapper {
             display: flex;
@@ -51,7 +60,6 @@
         }
         .grid {
             display: grid;
-            grid-template-columns: repeat(7, 80px);
             gap: 10px;
             background: #333;
             padding: 20px;
@@ -60,8 +68,6 @@
             width: fit-content;
         }
         .cell {
-            width: 80px;
-            height: 80px;
             background: #222;
             border: 3px solid #444;
             border-radius: 50%;
@@ -218,7 +224,10 @@
     <div class="game-container" id="game-container">
         <div class="header">
             <h1>Puissance 4 - Next Level</h1>
-            <div class="account-tab" id="accountTab">Compte</div>
+            <div class="account-tab" id="accountTab">
+                <img id="accountPic" class="account-pic" src="" alt="PP">
+                <span>Compte</span>
+            </div>
         </div>
         <div class="message" id="message">Tour du Joueur 1</div>
         <div class="score">Score Joueur 1: <span id="score1">0</span> | Score Joueur 2: <span id="score2">0</span></div>
@@ -240,6 +249,11 @@
                 <option value="normal">IA Normal</option>
                 <option value="hard">IA Difficile</option>
                 <option value="extreme">IA Extrême</option>
+            </select>
+            <select id="gridSize">
+                <option value="7x6">7x6 (Puissance 4)</option>
+                <option value="9x9">9x9 (Puissance 5)</option>
+                <option value="12x12">12x12 (Puissance 5)</option>
             </select>
             <button id="playIA">Jouer contre IA</button>
             <button id="createGame">Créer une partie</button>
@@ -264,6 +278,7 @@
                 <input type="password" id="newPassword" placeholder="Nouveau mot de passe">
                 <button id="updatePassword">Mettre à jour le mot de passe</button>
                 <button id="linkGoogle">Lier compte Google</button>
+                <div id="googleStatus" style="margin-top: 10px;"></div>
             </div>
         </div>
     </div>
@@ -305,7 +320,9 @@
         const newPasswordInput = document.getElementById('newPassword');
         const updatePasswordButton = document.getElementById('updatePassword');
         const linkGoogleButton = document.getElementById('linkGoogle');
+        const googleStatus = document.getElementById('googleStatus');
         const profilePic = document.getElementById('profilePic');
+        const accountPic = document.getElementById('accountPic');
         const grid = document.getElementById('grid');
         const message = document.getElementById('message');
         const score1 = document.getElementById('score1');
@@ -315,6 +332,7 @@
         const resetButton = document.getElementById('reset');
         const playIAButton = document.getElementById('playIA');
         const iaLevelSelect = document.getElementById('iaLevel');
+        const gridSizeSelect = document.getElementById('gridSize');
         const createGameButton = document.getElementById('createGame');
         const joinGameButton = document.getElementById('joinGame');
         const showFriendsButton = document.getElementById('showFriends');
@@ -336,7 +354,10 @@
         let currentGameId = null;
         let playerRole = null;
         let stats = { wins: 0, losses: 0, streak: 0 };
-        let processedInvites = new Set(); // Suivi des invitations traitées
+        let processedInvites = new Set();
+        let gridWidth = 7;
+        let gridHeight = 6;
+        let winLength = 4;
 
         // Authentification
         onAuthStateChanged(auth, async user => {
@@ -352,7 +373,12 @@
                 if (user.photoURL) {
                     profilePic.src = user.photoURL;
                     profilePic.style.display = 'block';
+                    accountPic.src = user.photoURL;
+                    accountPic.style.display = 'block';
                 }
+                const providers = user.providerData.map(provider => provider.providerId);
+                googleStatus.textContent = providers.includes('google.com') ? 'Compte Google déjà lié' : '';
+                linkGoogleButton.style.display = providers.includes('google.com') ? 'none' : 'block';
             } else {
                 authContainer.style.display = 'block';
                 gameContainer.style.display = 'none';
@@ -411,7 +437,11 @@
                     if (auth.currentUser.photoURL) {
                         profilePic.src = auth.currentUser.photoURL;
                         profilePic.style.display = 'block';
+                        accountPic.src = auth.currentUser.photoURL;
+                        accountPic.style.display = 'block';
                     }
+                    googleStatus.textContent = 'Compte Google déjà lié';
+                    linkGoogleButton.style.display = 'none';
                 })
                 .catch(error => alert(`Erreur : ${error.message}`));
         });
@@ -433,13 +463,21 @@
 
         // Créer la grille
         function createGrid() {
+            const size = gridSizeSelect.value.split('x');
+            gridWidth = parseInt(size[0]);
+            gridHeight = parseInt(size[1]);
+            winLength = gridWidth === 7 ? 4 : 5;
+            gameState = Array(gridHeight).fill().map(() => Array(gridWidth).fill(0));
+            grid.style.gridTemplateColumns = `repeat(${gridWidth}, ${gridWidth === 7 ? '80px' : gridWidth === 9 ? '60px' : '50px'})`;
             grid.innerHTML = '';
-            for (let row = 0; row < 6; row++) {
-                for (let col = 0; col < 7; col++) {
+            for (let row = 0; row < gridHeight; row++) {
+                for (let col = 0; col < gridWidth; col++) {
                     const cell = document.createElement('div');
                     cell.classList.add('cell');
                     cell.dataset.row = row;
                     cell.dataset.col = col;
+                    cell.style.width = gridWidth === 7 ? '80px' : gridWidth === 9 ? '60px' : '50px';
+                    cell.style.height = gridWidth === 7 ? '80px' : gridWidth === 9 ? '60px' : '50px';
                     cell.addEventListener('click', () => dropPiece(col));
                     grid.appendChild(cell);
                 }
@@ -450,11 +488,10 @@
         // Placer un jeton
         function dropPiece(column) {
             if (!currentUser) return;
-            if (currentGameId) {
-                if (playerRole === 'player1' && currentPlayer !== 1) return;
-                if (playerRole === 'player2' && currentPlayer !== 2) return;
-            }
-            for (let row = 5; row >= 0; row--) {
+            if (currentGameId && !playerRole) return; // Pas de rôle défini
+            if (currentGameId && playerRole === 'player1' && currentPlayer !== 1) return;
+            if (currentGameId && playerRole === 'player2' && currentPlayer !== 2) return;
+            for (let row = gridHeight - 1; row >= 0; row--) {
                 if (gameState[row][column] === 0) {
                     gameState[row][column] = currentPlayer;
                     if (currentGameId) updateGameStateInFirebase();
@@ -484,8 +521,8 @@
         function updateGrid() {
             const cells = document.querySelectorAll('.cell');
             cells.forEach(cell => {
-                const row = cell.dataset.row;
-                const col = cell.dataset.col;
+                const row = parseInt(cell.dataset.row);
+                const col = parseInt(cell.dataset.col);
                 cell.classList.remove('player1', 'player2');
                 if (gameState[row][col] === 1) cell.classList.add('player1');
                 else if (gameState[row][col] === 2) cell.classList.add('player2');
@@ -494,27 +531,38 @@
 
         // Vérifier la victoire
         function checkWin(player) {
-            for (let row = 0; row < 6; row++) {
-                for (let col = 0; col < 4; col++) {
-                    if (gameState[row][col] === player && gameState[row][col + 1] === player && gameState[row][col + 2] === player && gameState[row][col + 3] === player) return true;
+            // Horizontal
+            for (let row = 0; row < gridHeight; row++) {
+                for (let col = 0; col <= gridWidth - winLength; col++) {
+                    if (checkLine(row, col, 0, 1, player)) return true;
                 }
             }
-            for (let row = 0; row < 3; row++) {
-                for (let col = 0; col < 7; col++) {
-                    if (gameState[row][col] === player && gameState[row + 1][col] === player && gameState[row + 2][col] === player && gameState[row + 3][col] === player) return true;
+            // Vertical
+            for (let col = 0; col < gridWidth; col++) {
+                for (let row = 0; row <= gridHeight - winLength; row++) {
+                    if (checkLine(row, col, 1, 0, player)) return true;
                 }
             }
-            for (let row = 0; row < 3; row++) {
-                for (let col = 0; col < 4; col++) {
-                    if (gameState[row][col] === player && gameState[row + 1][col + 1] === player && gameState[row + 2][col + 2] === player && gameState[row + 3][col + 3] === player) return true;
+            // Diagonal (bas-gauche vers haut-droit)
+            for (let row = winLength - 1; row < gridHeight; row++) {
+                for (let col = 0; col <= gridWidth - winLength; col++) {
+                    if (checkLine(row, col, -1, 1, player)) return true;
                 }
             }
-            for (let row = 3; row < 6; row++) {
-                for (let col = 0; col < 4; col++) {
-                    if (gameState[row][col] === player && gameState[row - 1][col + 1] === player && gameState[row - 2][col + 2] === player && gameState[row - 3][col + 3] === player) return true;
+            // Diagonal (haut-gauche vers bas-droit)
+            for (let row = 0; row <= gridHeight - winLength; row++) {
+                for (let col = 0; col <= gridWidth - winLength; col++) {
+                    if (checkLine(row, col, 1, 1, player)) return true;
                 }
             }
             return false;
+        }
+
+        function checkLine(row, col, rowDelta, colDelta, player) {
+            for (let i = 0; i < winLength; i++) {
+                if (gameState[row + i * rowDelta]?.[col + i * colDelta] !== player) return false;
+            }
+            return true;
         }
 
         // Vérifier si la grille est pleine
@@ -555,7 +603,7 @@
 
         // Réinitialiser le jeu
         resetButton.addEventListener('click', () => {
-            gameState = Array(6).fill().map(() => Array(7).fill(0));
+            createGrid();
             currentPlayer = 1;
             message.textContent = 'Tour du Joueur 1';
             isPlayingIA = false;
@@ -563,7 +611,6 @@
             playerRole = null;
             chatContainer.style.display = 'none';
             replayButton.style.display = 'none';
-            updateGrid();
         });
 
         // Jouer contre l'IA
@@ -577,7 +624,7 @@
         // IA améliorée
         function iaPlay(level) {
             let availableColumns = [];
-            for (let col = 0; col < 7; col++) {
+            for (let col = 0; col < gridWidth; col++) {
                 if (gameState[0][col] === 0) availableColumns.push(col);
             }
             if (availableColumns.length === 0) return;
@@ -587,7 +634,7 @@
             } else if (level === 'normal') {
                 for (let col of availableColumns) {
                     let tempState = JSON.parse(JSON.stringify(gameState));
-                    for (let row = 5; row >= 0; row--) {
+                    for (let row = gridHeight - 1; row >= 0; row--) {
                         if (tempState[row][col] === 0) {
                             tempState[row][col] = 2;
                             if (checkWin(2)) {
@@ -613,29 +660,38 @@
 
         function evaluate(state) {
             let score = 0;
-            for (let row = 0; row < 6; row++) {
-                for (let col = 0; col < 4; col++) {
-                    score += evaluateLine(state[row].slice(col, col + 4), 2);
-                    score -= evaluateLine(state[row].slice(col, col + 4), 1);
+            for (let row = 0; row < gridHeight; row++) {
+                for (let col = 0; col <= gridWidth - winLength; col++) {
+                    score += evaluateLine(state[row].slice(col, col + winLength), 2);
+                    score -= evaluateLine(state[row].slice(col, col + winLength), 1);
                 }
             }
-            for (let col = 0; col < 7; col++) {
-                for (let row = 0; row < 3; row++) {
-                    let line = [state[row][col], state[row + 1][col], state[row + 2][col], state[row + 3][col]];
+            for (let col = 0; col < gridWidth; col++) {
+                for (let row = 0; row <= gridHeight - winLength; row++) {
+                    let line = [];
+                    for (let i = 0; i < winLength; i++) {
+                        line.push(state[row + i]?.[col]);
+                    }
                     score += evaluateLine(line, 2);
                     score -= evaluateLine(line, 1);
                 }
             }
-            for (let row = 0; row < 3; row++) {
-                for (let col = 0; col < 4; col++) {
-                    let line = [state[row][col], state[row + 1][col + 1], state[row + 2][col + 2], state[row + 3][col + 3]];
+            for (let row = 0; row <= gridHeight - winLength; row++) {
+                for (let col = 0; col <= gridWidth - winLength; col++) {
+                    let line = [];
+                    for (let i = 0; i < winLength; i++) {
+                        line.push(state[row + i]?.[col + i]);
+                    }
                     score += evaluateLine(line, 2);
                     score -= evaluateLine(line, 1);
                 }
             }
-            for (let row = 3; row < 6; row++) {
-                for (let col = 0; col < 4; col++) {
-                    let line = [state[row][col], state[row - 1][col + 1], state[row - 2][col + 2], state[row - 3][col + 3]];
+            for (let row = winLength - 1; row < gridHeight; row++) {
+                for (let col = 0; col <= gridWidth - winLength; col++) {
+                    let line = [];
+                    for (let i = 0; i < winLength; i++) {
+                        line.push(state[row - i]?.[col + i]);
+                    }
                     score += evaluateLine(line, 2);
                     score -= evaluateLine(line, 1);
                 }
@@ -650,10 +706,10 @@
             const countOpponent = line.filter(cell => cell === opponent).length;
             const countEmpty = line.filter(cell => cell === 0).length;
 
-            if (countPlayer === 4) score += 1000;
-            else if (countPlayer === 3 && countEmpty === 1) score += 100;
-            else if (countPlayer === 2 && countEmpty === 2) score += 10;
-            if (countOpponent === 3 && countEmpty === 1) score -= 80;
+            if (countPlayer === winLength) score += 1000;
+            else if (countPlayer === winLength - 1 && countEmpty === 1) score += 100;
+            else if (countPlayer === winLength - 2 && countEmpty === 2) score += 10;
+            if (countOpponent === winLength - 1 && countEmpty === 1) score -= 80;
 
             return score;
         }
@@ -665,10 +721,10 @@
             let bestCol = null;
             if (isMaximizing) {
                 let maxEval = -Infinity;
-                for (let col = 0; col < 7; col++) {
+                for (let col = 0; col < gridWidth; col++) {
                     if (state[0][col] === 0) {
                         let newState = JSON.parse(JSON.stringify(state));
-                        for (let row = 5; row >= 0; row--) {
+                        for (let row = gridHeight - 1; row >= 0; row--) {
                             if (newState[row][col] === 0) {
                                 newState[row][col] = 2;
                                 let evalScore = minimax(newState, depth - 1, false)[0];
@@ -684,10 +740,10 @@
                 return [maxEval, bestCol];
             } else {
                 let minEval = Infinity;
-                for (let col = 0; col < 7; col++) {
+                for (let col = 0; col < gridWidth; col++) {
                     if (state[0][col] === 0) {
                         let newState = JSON.parse(JSON.stringify(state));
-                        for (let row = 5; row >= 0; row--) {
+                        for (let row = gridHeight - 1; row >= 0; row--) {
                             if (newState[row][col] === 0) {
                                 newState[row][col] = 1;
                                 let evalScore = minimax(newState, depth - 1, true)[0];
@@ -711,10 +767,10 @@
             let bestCol = null;
             if (isMaximizing) {
                 let maxEval = -Infinity;
-                for (let col = 0; col < 7; col++) {
+                for (let col = 0; col < gridWidth; col++) {
                     if (state[0][col] === 0) {
                         let newState = JSON.parse(JSON.stringify(state));
-                        for (let row = 5; row >= 0; row--) {
+                        for (let row = gridHeight - 1; row >= 0; row--) {
                             if (newState[row][col] === 0) {
                                 newState[row][col] = 2;
                                 let evalScore = minimaxAlphaBeta(newState, depth - 1, alpha, beta, false)[0];
@@ -732,10 +788,10 @@
                 return [maxEval, bestCol];
             } else {
                 let minEval = Infinity;
-                for (let col = 0; col < 7; col++) {
+                for (let col = 0; col < gridWidth; col++) {
                     if (state[0][col] === 0) {
                         let newState = JSON.parse(JSON.stringify(state));
-                        for (let row = 5; row >= 0; row--) {
+                        for (let row = gridHeight - 1; row >= 0; row--) {
                             if (newState[row][col] === 0) {
                                 newState[row][col] = 1;
                                 let evalScore = minimaxAlphaBeta(newState, depth - 1, alpha, beta, true)[0];
@@ -759,14 +815,15 @@
             if (!currentUser) return alert('Veuillez vous connecter');
             const gameRef = push(ref(realtimeDb, 'games'));
             currentGameId = gameRef.key;
-            gameState = Array(6).fill().map(() => Array(7).fill(0));
+            createGrid();
             const gameData = {
                 player1: currentUser.uid,
                 player2: null,
                 currentPlayer: 1,
                 gameState: gameState,
                 status: 'waiting',
-                chat: []
+                chat: [],
+                gridSize: gridSizeSelect.value
             };
             set(gameRef, gameData).then(() => {
                 playerRole = 'player1';
@@ -791,6 +848,8 @@
                 const game = snapshot.val();
                 if (!game) return alert('Partie invalide');
                 if (game.player2) return alert('Partie complète');
+                gridSizeSelect.value = game.gridSize;
+                createGrid();
                 update(gameRef, {
                     player2: currentUser.uid,
                     status: 'playing'
@@ -812,6 +871,8 @@
                 if (!game) return;
                 gameState = game.gameState;
                 currentPlayer = game.currentPlayer;
+                gridSizeSelect.value = game.gridSize;
+                createGrid();
                 updateGrid();
                 message.textContent = `Tour du Joueur ${currentPlayer} (Partie: ${currentGameId})`;
                 if (game.status === 'waiting') {
@@ -834,12 +895,11 @@
             onChildAdded(invitesRef, snapshot => {
                 const inviteId = snapshot.key;
                 const invite = snapshot.val();
-                if (!processedInvites.has(inviteId)) { // Vérifier si l'invitation n'a pas été traitée
+                if (!processedInvites.has(inviteId)) {
                     processedInvites.add(inviteId);
                     if (confirm(`Vous avez été invité à rejoindre la partie ${invite.gameId} par ${invite.from}. Accepter ?`)) {
                         joinGame(invite.gameId);
                     }
-                    // Supprimer l'invitation après affichage
                     remove(ref(realtimeDb, `invites/${currentUser.uid}/${inviteId}`))
                         .catch(error => console.error(`Erreur lors de la suppression de l'invitation : ${error.message}`));
                 }
@@ -942,7 +1002,7 @@
             if (isPlayingIA) {
                 playIAButton.click();
             } else if (currentGameId) {
-                gameState = Array(6).fill().map(() => Array(7).fill(0));
+                createGrid();
                 currentPlayer = 1;
                 updateGameStateInFirebase();
                 message.textContent = `Tour du Joueur 1 (Partie: ${currentGameId})`;
