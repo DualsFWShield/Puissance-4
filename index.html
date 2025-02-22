@@ -3,11 +3,11 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Puissance 4 - Next Level</title>
+    <title>Puissance 4</title>
     <style>
         body {
             font-family: 'Orbitron', sans-serif;
-            background: linear-gradient(135deg, #1f1f1f, #3a3a3a);
+            background: linear-gradient(135deg, #1a1a1a, #2c2c2c);
             color: #e0e0e0;
             margin: 0;
             padding: 20px;
@@ -15,35 +15,12 @@
             flex-direction: column;
             align-items: center;
             min-height: 100vh;
-            overflow: auto;
-            position: relative;
-        }
-        body::before {
-            content: '';
-            position: absolute;
-            top: 0;
-            left: 0;
-            width: 100%;
-            height: 100%;
-            background: radial-gradient(circle, rgba(0, 212, 255, 0.1), transparent);
-            animation: pulse 10s infinite;
-            z-index: -1;
-        }
-        @keyframes pulse {
-            0% { transform: scale(1); opacity: 0.5; }
-            50% { transform: scale(1.2); opacity: 0.2; }
-            100% { transform: scale(1); opacity: 0.5; }
         }
         h1 {
-            font-size: 3.5em;
-            color: #00ffcc;
-            text-shadow: 0 0 15px #00ffcc, 0 0 25px #00ffcc;
+            font-size: 3em;
+            color: #00d4ff;
+            text-shadow: 0 0 10px #00d4ff, 0 0 20px #00d4ff;
             margin-bottom: 20px;
-            animation: glow 2s ease-in-out infinite;
-        }
-        @keyframes glow {
-            0%, 100% { text-shadow: 0 0 15px #00ffcc, 0 0 25px #00ffcc; }
-            50% { text-shadow: 0 0 25px #00ffcc, 0 0 35px #00ffcc; }
         }
         .header {
             width: 100%;
@@ -55,25 +32,23 @@
         }
         .account-tab {
             cursor: pointer;
-            padding: 12px 25px;
-            background: linear-gradient(45deg, #ff00cc, #00ffcc);
-            border-radius: 25px;
-            box-shadow: 0 5px 20px rgba(255, 0, 204, 0.5);
-            transition: transform 0.3s, box-shadow 0.3s;
+            padding: 10px 20px;
+            background: linear-gradient(45deg, #00d4ff, #007bff);
+            border-radius: 20px;
+            box-shadow: 0 5px 15px rgba(0, 212, 255, 0.5);
+            transition: transform 0.3s;
             display: flex;
             align-items: center;
             gap: 10px;
         }
         .account-tab:hover {
-            transform: translateY(-5px);
-            box-shadow: 0 10px 30px rgba(255, 0, 204, 0.8);
+            transform: translateY(-3px);
         }
         .account-pic {
             width: 30px;
             height: 30px;
             border-radius: 50%;
             display: none;
-            border: 2px solid #00ffcc;
         }
         .game-wrapper {
             display: flex;
@@ -86,48 +61,31 @@
         .grid {
             display: grid;
             gap: 10px;
-            background: #2a2a2a;
+            background: #333;
             padding: 20px;
             border-radius: 20px;
-            box-shadow: 0 0 40px rgba(0, 255, 204, 0.6);
+            box-shadow: 0 0 30px rgba(0, 212, 255, 0.5);
             width: fit-content;
-            position: relative;
-            overflow: hidden;
-        }
-        .grid::before {
-            content: '';
-            position: absolute;
-            top: -50%;
-            left: -50%;
-            width: 200%;
-            height: 200%;
-            background: radial-gradient(circle, rgba(0, 255, 204, 0.2), transparent);
-            animation: rotate 15s linear infinite;
-            z-index: -1;
-        }
-        @keyframes rotate {
-            0% { transform: rotate(0deg); }
-            100% { transform: rotate(360deg); }
         }
         .cell {
-            background: #333;
-            border: 3px solid #555;
+            background: #222;
+            border: 3px solid #444;
             border-radius: 50%;
             cursor: pointer;
             transition: transform 0.3s ease, box-shadow 0.3s ease;
         }
         .cell:hover {
-            transform: scale(1.2);
-            box-shadow: 0 0 20px rgba(0, 255, 204, 0.8);
+            transform: scale(1.15);
+            box-shadow: 0 0 15px rgba(0, 212, 255, 0.7);
         }
         .player1 {
             background: radial-gradient(circle, #ff5555, #cc0000);
-            box-shadow: 0 0 25px #ff5555;
+            box-shadow: 0 0 20px #ff5555;
             animation: drop 0.6s ease;
         }
         .player2 {
             background: radial-gradient(circle, #ffd700, #ffaa00);
-            box-shadow: 0 0 25px #ffd700;
+            box-shadow: 0 0 20px #ffd700;
             animation: drop 0.6s ease;
         }
         @keyframes drop {
@@ -135,27 +93,21 @@
             to { transform: translateY(0); }
         }
         .message {
-            font-size: 2em;
+            font-size: 1.8em;
             margin: 20px;
-            background: rgba(0, 0, 0, 0.85);
-            padding: 15px 30px;
+            background: rgba(0, 0, 0, 0.8);
+            padding: 15px 25px;
             border-radius: 15px;
-            color: #00ffcc;
-            text-shadow: 0 0 10px #00ffcc;
-            animation: bounce 1.5s infinite;
-        }
-        @keyframes bounce {
-            0%, 100% { transform: translateY(0); }
-            50% { transform: translateY(-5px); }
+            color: #00d4ff;
+            text-shadow: 0 0 5px #00d4ff;
         }
         .score, .stats {
-            font-size: 1.5em;
+            font-size: 1.3em;
             margin: 15px;
             background: rgba(0, 0, 0, 0.7);
-            padding: 12px 25px;
-            border-radius: 12px;
+            padding: 10px 20px;
+            border-radius: 10px;
             color: #e0e0e0;
-            box-shadow: 0 0 15px rgba(0, 255, 204, 0.4);
         }
         .buttons, .friend-section, .account-section {
             margin: 20px;
@@ -165,19 +117,19 @@
             gap: 15px;
         }
         button {
-            padding: 15px 35px;
-            font-size: 1.2em;
+            padding: 15px 30px;
+            font-size: 1.1em;
             cursor: pointer;
-            background: linear-gradient(45deg, #ff00cc, #00ffcc);
+            background: linear-gradient(45deg, #00d4ff, #007bff);
             color: #fff;
             border: none;
             border-radius: 30px;
-            box-shadow: 0 5px 25px rgba(255, 0, 204, 0.5);
+            box-shadow: 0 5px 20px rgba(0, 212, 255, 0.5);
             transition: transform 0.3s, box-shadow 0.3s;
         }
         button:hover {
-            transform: translateY(-5px) scale(1.05);
-            box-shadow: 0 10px 35px rgba(255, 0, 204, 0.8);
+            transform: translateY(-5px);
+            box-shadow: 0 10px 30px rgba(0, 212, 255, 0.8);
         }
         .auth-container, .game-container {
             display: none;
@@ -188,22 +140,17 @@
             padding: 30px;
             background: rgba(0, 0, 0, 0.9);
             border-radius: 20px;
-            box-shadow: 0 0 30px rgba(0, 255, 204, 0.5);
+            box-shadow: 0 0 20px rgba(0, 212, 255, 0.3);
         }
         input, select {
             width: 100%;
             padding: 12px;
             margin: 10px 0;
-            border: 2px solid #00ffcc;
+            border: 2px solid #00d4ff;
             border-radius: 10px;
             background: #222;
             color: #e0e0e0;
             font-size: 1em;
-            transition: border-color 0.3s;
-        }
-        input:focus, select:focus {
-            border-color: #ff00cc;
-            outline: none;
         }
         .friend-list {
             max-height: 250px;
@@ -212,7 +159,6 @@
             padding: 15px;
             background: rgba(0, 0, 0, 0.7);
             border-radius: 15px;
-            box-shadow: 0 0 15px rgba(0, 255, 204, 0.4);
         }
         .friend-item {
             display: flex;
@@ -220,17 +166,13 @@
             align-items: center;
             padding: 10px;
             border-bottom: 1px solid #444;
-            transition: background 0.3s;
-        }
-        .friend-item:hover {
-            background: rgba(0, 255, 204, 0.1);
         }
         .chat-container {
             width: 300px;
             background: rgba(0, 0, 0, 0.9);
             padding: 20px;
             border-radius: 20px;
-            box-shadow: 0 0 30px rgba(0, 255, 204, 0.5);
+            box-shadow: 0 0 20px rgba(0, 212, 255, 0.3);
             display: none;
         }
         .chat-messages {
@@ -252,8 +194,6 @@
             border-radius: 50%;
             margin: 10px auto;
             display: block;
-            border: 3px solid #00ffcc;
-            box-shadow: 0 0 15px #00ffcc;
         }
         @media (max-width: 900px) {
             .game-wrapper {
@@ -350,13 +290,13 @@
         import { getDatabase, ref, push, set, onValue, update, onChildAdded, remove } from 'https://www.gstatic.com/firebasejs/9.22.0/firebase-database.js';
 
         const firebaseConfig = {
-        apiKey: "AIzaSyBmvD0pBikHRQlSj8VhGejiQufYsK2BsfQ",
-        authDomain: "puissance-4-80249.firebaseapp.com",
-        databaseURL: "https://puissance-4-80249-default-rtdb.europe-west1.firebasedatabase.app",
-        projectId: "puissance-4-80249",
-        storageBucket: "puissance-4-80249.firebasestorage.app",
-        messagingSenderId: "829085554865",
-        appId: "1:829085554865:web:6b2e12e2cd956d954dea90"
+          apiKey: "AIzaSyBmvD0pBikHRQlSj8VhGejiQufYsK2BsfQ",
+          authDomain: "puissance-4-80249.firebaseapp.com",
+          databaseURL: "https://puissance-4-80249-default-rtdb.europe-west1.firebasedatabase.app",
+          projectId: "puissance-4-80249",
+          storageBucket: "puissance-4-80249.firebasestorage.app",
+          messagingSenderId: "829085554865",
+          appId: "1:829085554865:web:6b2e12e2cd956d954dea90"
         };
 
         const app = initializeApp(firebaseConfig);
@@ -545,49 +485,40 @@
             updateGrid();
         }
 
-        // Placer un jeton (votre version corrigée)
+        // Placer un jeton
         function dropPiece(column) {
             if (!currentUser) return;
             if (!playerRole) return; // Pas de rôle défini
             const isPlayer1 = playerRole === 'player1';
             const isPlayer2 = playerRole === 'player2';
             const isMyTurn = (isPlayer1 && currentPlayer === 1) || (isPlayer2 && currentPlayer === 2);
-            
-            if (!isMyTurn) {
-                message.textContent = "Ce n'est pas votre tour !";
+            if (currentGameId && !isMyTurn) {
+                console.log(`Pas votre tour ! Role: ${playerRole}, Current: ${currentPlayer}`);
                 return;
             }
-
             for (let row = gridHeight - 1; row >= 0; row--) {
                 if (gameState[row][column] === 0) {
                     gameState[row][column] = currentPlayer;
-                    updateGrid();
-
-                    if (checkWin(currentPlayer)) {
-                        message.textContent = `Joueur ${currentPlayer} gagne !`;
-                        updateStats(currentPlayer === 1 ? 'win' : 'loss');
-                        replayButton.style.display = 'block';
-                        if (currentGameId) {
-                            updateGameStateInFirebase();
-                        }
-                        return;
-                    } else if (isBoardFull()) {
-                        message.textContent = 'Égalité !';
-                        updateStats('tie');
-                        replayButton.style.display = 'block';
-                        if (currentGameId) {
-                            updateGameStateInFirebase();
-                        }
-                        return;
-                    }
-
-                    currentPlayer = currentPlayer === 1 ? 2 : 1;
-                    message.textContent = `Tour du Joueur ${currentPlayer}${currentGameId ? ` (Partie: ${currentGameId})` : ''}`;
-
                     if (currentGameId) {
                         updateGameStateInFirebase();
-                    } else if (isPlayingIA && currentPlayer === 2) {
-                        setTimeout(() => iaPlay(iaLevelSelect.value), 500);
+                    } else {
+                        updateGrid();
+                        if (checkWin(currentPlayer)) {
+                            message.textContent = `Joueur ${currentPlayer} gagne !`;
+                            updateStats(currentPlayer === 1 ? 'win' : 'loss');
+                            replayButton.style.display = 'block';
+                            return;
+                        } else if (isBoardFull()) {
+                            message.textContent = 'Égalité !';
+                            updateStats('tie');
+                            replayButton.style.display = 'block';
+                            return;
+                        }
+                        currentPlayer = currentPlayer === 1 ? 2 : 1;
+                        message.textContent = `Tour du Joueur ${currentPlayer}${currentGameId ? ` (Partie: ${currentGameId})` : ''}`;
+                        if (isPlayingIA && currentPlayer === 2) {
+                            setTimeout(() => iaPlay(iaLevelSelect.value), 500);
+                        }
                     }
                     return;
                 }
