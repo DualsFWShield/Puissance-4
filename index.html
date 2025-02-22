@@ -3,138 +3,161 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Puissance 4 en Ligne</title>
+    <title>Puissance 4 - Next Level</title>
     <style>
         body {
-            font-family: 'Poppins', 'Arial', sans-serif; /* Ajout de police de secours */
-            background: linear-gradient(135deg, #74ebd5, #acb6e5);
-            text-align: center;
+            font-family: 'Orbitron', sans-serif;
+            background: linear-gradient(135deg, #1a1a1a, #2c2c2c);
+            color: #e0e0e0;
             margin: 0;
             padding: 20px;
-            color: #333;
+            text-align: center;
+            overflow-x: hidden;
         }
         h1 {
-            font-size: 2.5em;
+            font-size: 3em;
+            color: #00d4ff;
+            text-shadow: 0 0 10px #00d4ff, 0 0 20px #00d4ff;
             margin-bottom: 20px;
-            color: #fff;
-            text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.2);
         }
         .grid {
             display: grid;
-            grid-template-columns: repeat(7, 70px);
-            gap: 8px;
+            grid-template-columns: repeat(7, 80px);
+            gap: 10px;
             margin: 0 auto;
-            background: #fff;
-            padding: 15px;
-            border-radius: 15px;
-            box-shadow: 0 10px 20px rgba(0, 0, 0, 0.15);
+            background: #333;
+            padding: 20px;
+            border-radius: 20px;
+            box-shadow: 0 0 30px rgba(0, 212, 255, 0.5);
             width: fit-content;
             position: relative;
-            overflow: hidden;
         }
         .cell {
-            width: 70px;
-            height: 70px;
-            background: #f0f0f0;
-            border: 2px solid #ddd;
+            width: 80px;
+            height: 80px;
+            background: #222;
+            border: 3px solid #444;
             border-radius: 50%;
             cursor: pointer;
-            transition: transform 0.2s ease, background 0.3s ease;
+            transition: transform 0.3s ease, box-shadow 0.3s ease;
         }
         .cell:hover {
-            transform: scale(1.1);
+            transform: scale(1.15);
+            box-shadow: 0 0 15px rgba(0, 212, 255, 0.7);
         }
         .player1 {
-            background: radial-gradient(circle, #ff6b6b, #ff4d4d);
-            animation: drop 0.5s ease;
+            background: radial-gradient(circle, #ff5555, #cc0000);
+            box-shadow: 0 0 20px #ff5555;
+            animation: drop 0.6s ease;
         }
         .player2 {
-            background: radial-gradient(circle, #ffe066, #ffd700);
-            animation: drop 0.5s ease;
+            background: radial-gradient(circle, #ffd700, #ffaa00);
+            box-shadow: 0 0 20px #ffd700;
+            animation: drop 0.6s ease;
         }
         @keyframes drop {
-            from { transform: translateY(-100px); }
+            from { transform: translateY(-150px); }
             to { transform: translateY(0); }
         }
         .message {
-            font-size: 1.5em;
+            font-size: 1.8em;
             margin: 20px;
-            color: #fff;
+            background: rgba(0, 0, 0, 0.8);
+            padding: 15px 25px;
+            border-radius: 15px;
+            color: #00d4ff;
+            text-shadow: 0 0 5px #00d4ff;
+            display: inline-block;
+        }
+        .score, .stats {
+            font-size: 1.3em;
+            margin: 15px;
             background: rgba(0, 0, 0, 0.7);
             padding: 10px 20px;
             border-radius: 10px;
-            display: inline-block;
-        }
-        .score {
-            font-size: 1.2em;
-            margin: 15px;
-            color: #fff;
-            background: rgba(255, 255, 255, 0.1);
-            padding: 10px;
-            border-radius: 8px;
+            color: #e0e0e0;
         }
         .buttons, .friend-section {
             margin: 20px;
             display: flex;
             flex-wrap: wrap;
             justify-content: center;
-            gap: 10px;
+            gap: 15px;
         }
         button {
-            padding: 12px 25px;
-            font-size: 1em;
+            padding: 15px 30px;
+            font-size: 1.1em;
             cursor: pointer;
-            background: linear-gradient(45deg, #4CAF50, #66bb6a);
-            color: white;
+            background: linear-gradient(45deg, #00d4ff, #007bff);
+            color: #fff;
             border: none;
-            border-radius: 25px;
-            box-shadow: 0 5px 15px rgba(0, 0, 0, 0.1);
-            transition: transform 0.2s, background 0.3s;
+            border-radius: 30px;
+            box-shadow: 0 5px 20px rgba(0, 212, 255, 0.5);
+            transition: transform 0.3s, box-shadow 0.3s;
         }
         button:hover {
-            transform: translateY(-3px);
-            background: linear-gradient(45deg, #45a049, #5cb85c);
+            transform: translateY(-5px);
+            box-shadow: 0 10px 30px rgba(0, 212, 255, 0.8);
         }
         .auth-container, .game-container {
             display: none;
         }
         .auth-form, .friend-form {
             margin: 20px auto;
-            width: 350px;
-            padding: 25px;
-            background: rgba(255, 255, 255, 0.9);
-            border-radius: 15px;
-            box-shadow: 0 10px 20px rgba(0, 0, 0, 0.15);
+            width: 400px;
+            padding: 30px;
+            background: rgba(0, 0, 0, 0.9);
+            border-radius: 20px;
+            box-shadow: 0 0 20px rgba(0, 212, 255, 0.3);
         }
         input, select {
             width: 100%;
             padding: 12px;
-            margin: 8px 0;
-            border: 1px solid #ccc;
-            border-radius: 8px;
-            box-sizing: border-box;
+            margin: 10px 0;
+            border: 2px solid #00d4ff;
+            border-radius: 10px;
+            background: #222;
+            color: #e0e0e0;
             font-size: 1em;
         }
         .friend-list {
-            max-height: 200px;
+            max-height: 250px;
             overflow-y: auto;
-            margin: 10px 0;
-            padding: 10px;
-            background: rgba(255, 255, 255, 0.8);
-            border-radius: 10px;
+            margin: 15px 0;
+            padding: 15px;
+            background: rgba(0, 0, 0, 0.7);
+            border-radius: 15px;
         }
         .friend-item {
             display: flex;
             justify-content: space-between;
             align-items: center;
-            padding: 8px;
-            border-bottom: 1px solid #eee;
+            padding: 10px;
+            border-bottom: 1px solid #444;
+        }
+        .chat-container {
+            margin: 20px auto;
+            width: 400px;
+            background: rgba(0, 0, 0, 0.9);
+            padding: 20px;
+            border-radius: 20px;
+            box-shadow: 0 0 20px rgba(0, 212, 255, 0.3);
+        }
+        .chat-messages {
+            max-height: 200px;
+            overflow-y: auto;
+            margin-bottom: 10px;
+            padding: 10px;
+            background: #222;
+            border-radius: 10px;
+            color: #e0e0e0;
+        }
+        .chat-input {
+            display: flex;
+            gap: 10px;
         }
     </style>
-    <!-- Lien Google Fonts avec préconnexion pour éviter le blocage -->
-    <link rel="preconnect" href="https://fonts.googleapis.com">
-    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;600&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@400;700&display=swap" rel="stylesheet">
 </head>
 <body>
     <div class="auth-container" id="auth-container">
@@ -148,9 +171,10 @@
     </div>
 
     <div class="game-container" id="game-container">
-        <h1>Puissance 4 en Ligne</h1>
+        <h1>Puissance 4 - Next Level</h1>
         <div class="message" id="message">Tour du Joueur 1</div>
         <div class="score">Score Joueur 1: <span id="score1">0</span> | Score Joueur 2: <span id="score2">0</span></div>
+        <div class="stats">Victoires: <span id="wins">0</span> | Streak: <span id="streak">0</span></div>
         <div class="grid" id="grid"></div>
         <div class="buttons">
             <button id="reset">Réinitialiser</button>
@@ -173,13 +197,20 @@
                 <div class="friend-list" id="friendList"></div>
             </div>
         </div>
+        <div class="chat-container" id="chat-container" style="display: none;">
+            <div class="chat-messages" id="chatMessages"></div>
+            <div class="chat-input">
+                <input type="text" id="chatInput" placeholder="Envoyer un message...">
+                <button id="sendChat">Envoyer</button>
+            </div>
+        </div>
     </div>
 
     <script type="module">
         import { initializeApp } from 'https://www.gstatic.com/firebasejs/9.22.0/firebase-app.js';
         import { getAuth, signInWithEmailAndPassword, createUserWithEmailAndPassword, onAuthStateChanged } from 'https://www.gstatic.com/firebasejs/9.22.0/firebase-auth.js';
         import { getFirestore, collection, doc, setDoc, getDocs, serverTimestamp } from 'https://www.gstatic.com/firebasejs/9.22.0/firebase-firestore.js';
-        import { getDatabase, ref, push, set, onValue, update } from 'https://www.gstatic.com/firebasejs/9.22.0/firebase-database.js';
+        import { getDatabase, ref, push, set, onValue, update, onChildAdded } from 'https://www.gstatic.com/firebasejs/9.22.0/firebase-database.js';
 
         const firebaseConfig = {
           apiKey: "AIzaSyBmvD0pBikHRQlSj8VhGejiQufYsK2BsfQ",
@@ -207,6 +238,8 @@
         const message = document.getElementById('message');
         const score1 = document.getElementById('score1');
         const score2 = document.getElementById('score2');
+        const wins = document.getElementById('wins');
+        const streak = document.getElementById('streak');
         const resetButton = document.getElementById('reset');
         const playIAButton = document.getElementById('playIA');
         const iaLevelSelect = document.getElementById('iaLevel');
@@ -218,12 +251,17 @@
         const friendIdInput = document.getElementById('friendId');
         const submitFriendButton = document.getElementById('submitFriend');
         const friendList = document.getElementById('friendList');
+        const chatContainer = document.getElementById('chat-container');
+        const chatMessages = document.getElementById('chatMessages');
+        const chatInput = document.getElementById('chatInput');
+        const sendChatButton = document.getElementById('sendChat');
 
         let currentPlayer = 1;
         let gameState = Array(6).fill().map(() => Array(7).fill(0));
         let isPlayingIA = false;
         let currentUser = null;
         let currentGameId = null;
+        let stats = { wins: 0, streak: 0 };
 
         // Authentification
         onAuthStateChanged(auth, user => {
@@ -234,6 +272,7 @@
                 userIdSpan.textContent = user.uid;
                 createGrid();
                 loadFriends();
+                listenForInvites();
             } else {
                 authContainer.style.display = 'block';
                 gameContainer.style.display = 'none';
@@ -275,10 +314,11 @@
                     updateGrid();
                     if (checkWin(currentPlayer)) {
                         message.textContent = `Joueur ${currentPlayer} gagne !`;
-                        updateScore(currentPlayer);
+                        updateStats(true);
                         return;
                     } else if (isBoardFull()) {
                         message.textContent = 'Égalité !';
+                        updateStats(false);
                         return;
                     }
                     currentPlayer = currentPlayer === 1 ? 2 : 1;
@@ -333,10 +373,17 @@
             return gameState.every(row => row.every(cell => cell !== 0));
         }
 
-        // Mettre à jour les scores
-        function updateScore(player) {
-            if (player === 1) score1.textContent = parseInt(score1.textContent) + 1;
-            else score2.textContent = parseInt(score2.textContent) + 1;
+        // Mettre à jour les scores et stats
+        function updateStats(won) {
+            if (won && currentPlayer === 1) {
+                stats.wins++;
+                stats.streak++;
+                score1.textContent = parseInt(score1.textContent) + 1;
+            } else if (!won) {
+                stats.streak = 0;
+            }
+            wins.textContent = stats.wins;
+            streak.textContent = stats.streak;
         }
 
         // Réinitialiser le jeu
@@ -346,6 +393,7 @@
             message.textContent = 'Tour du Joueur 1';
             isPlayingIA = false;
             currentGameId = null;
+            chatContainer.style.display = 'none';
             updateGrid();
         });
 
@@ -356,7 +404,7 @@
             message.textContent = `Tour du Joueur 1 (Vous) - IA ${iaLevelSelect.value}`;
         });
 
-        // IA avec différents niveaux
+        // IA améliorée
         function iaPlay(level) {
             let availableColumns = [];
             for (let col = 0; col < 7; col++) {
@@ -365,13 +413,17 @@
             if (availableColumns.length === 0) return;
 
             if (level === 'easy') {
-                const randomCol = availableColumns[Math.floor(Math.random() * availableColumns.length)];
-                dropPiece(randomCol);
+                dropPiece(availableColumns[Math.floor(Math.random() * availableColumns.length)]);
             } else if (level === 'normal') {
                 for (let col of availableColumns) {
                     let tempState = JSON.parse(JSON.stringify(gameState));
                     for (let row = 5; row >= 0; row--) {
                         if (tempState[row][col] === 0) {
+                            tempState[row][col] = 2;
+                            if (checkWin(2)) {
+                                dropPiece(col);
+                                return;
+                            }
                             tempState[row][col] = 1;
                             if (checkWin(1)) {
                                 dropPiece(col);
@@ -381,16 +433,61 @@
                         }
                     }
                 }
-                const randomCol = availableColumns[Math.floor(Math.random() * availableColumns.length)];
-                dropPiece(randomCol);
+                dropPiece(availableColumns[Math.floor(Math.random() * availableColumns.length)]);
             } else if (level === 'hard') {
-                dropPiece(minimax(gameState, 3, true)[1]);
+                dropPiece(minimax(gameState, 4, true)[1]);
             } else if (level === 'extreme') {
-                dropPiece(minimaxAlphaBeta(gameState, 5, -Infinity, Infinity, true)[1]);
+                dropPiece(minimaxAlphaBeta(gameState, 6, -Infinity, Infinity, true)[1]);
             }
         }
 
-        // Algorithme Minimax (Difficile)
+        function evaluate(state) {
+            let score = 0;
+            for (let row = 0; row < 6; row++) {
+                for (let col = 0; col < 4; col++) {
+                    score += evaluateLine(state[row].slice(col, col + 4), 2);
+                    score -= evaluateLine(state[row].slice(col, col + 4), 1);
+                }
+            }
+            for (let col = 0; col < 7; col++) {
+                for (let row = 0; row < 3; row++) {
+                    let line = [state[row][col], state[row + 1][col], state[row + 2][col], state[row + 3][col]];
+                    score += evaluateLine(line, 2);
+                    score -= evaluateLine(line, 1);
+                }
+            }
+            for (let row = 0; row < 3; row++) {
+                for (let col = 0; col < 4; col++) {
+                    let line = [state[row][col], state[row + 1][col + 1], state[row + 2][col + 2], state[row + 3][col + 3]];
+                    score += evaluateLine(line, 2);
+                    score -= evaluateLine(line, 1);
+                }
+            }
+            for (let row = 3; row < 6; row++) {
+                for (let col = 0; col < 4; col++) {
+                    let line = [state[row][col], state[row - 1][col + 1], state[row - 2][col + 2], state[row - 3][col + 3]];
+                    score += evaluateLine(line, 2);
+                    score -= evaluateLine(line, 1);
+                }
+            }
+            return score;
+        }
+
+        function evaluateLine(line, player) {
+            const opponent = player === 1 ? 2 : 1;
+            let score = 0;
+            const countPlayer = line.filter(cell => cell === player).length;
+            const countOpponent = line.filter(cell => cell === opponent).length;
+            const countEmpty = line.filter(cell => cell === 0).length;
+
+            if (countPlayer === 4) score += 1000;
+            else if (countPlayer === 3 && countEmpty === 1) score += 100;
+            else if (countPlayer === 2 && countEmpty === 2) score += 10;
+            if (countOpponent === 3 && countEmpty === 1) score -= 80;
+
+            return score;
+        }
+
         function minimax(state, depth, isMaximizing) {
             if (depth === 0 || checkWin(1) || checkWin(2) || isBoardFull()) {
                 return [evaluate(state), null];
@@ -437,7 +534,6 @@
             }
         }
 
-        // Algorithme Minimax avec élagage alpha-bêta (Extrême)
         function minimaxAlphaBeta(state, depth, alpha, beta, isMaximizing) {
             if (depth === 0 || checkWin(1) || checkWin(2) || isBoardFull()) {
                 return [evaluate(state), null];
@@ -488,13 +584,6 @@
             }
         }
 
-        // Évaluation de la grille
-        function evaluate(state) {
-            if (checkWin(2)) return 1000;
-            if (checkWin(1)) return -1000;
-            return 0;
-        }
-
         // Créer une partie en ligne
         createGameButton.addEventListener('click', () => {
             if (!currentUser) return alert('Veuillez vous connecter');
@@ -506,12 +595,15 @@
                 player2: null,
                 currentPlayer: 1,
                 gameState: gameState,
-                status: 'waiting'
+                status: 'waiting',
+                chat: []
             };
             set(gameRef, gameData).then(() => {
-                message.textContent = `Partie créée (ID: ${currentGameId}) - En attente d’un joueur...`;
+                message.textContent = `Partie créée (ID: ${currentGameId}) - En attente...`;
+                chatContainer.style.display = 'block';
                 listenToGameState();
-            });
+                listenToChat();
+            }).catch(error => alert(`Erreur : ${error.message}`));
         });
 
         // Rejoindre une partie
@@ -522,11 +614,16 @@
             const gameRef = ref(realtimeDb, `games/${gameId}`);
             onValue(gameRef, snapshot => {
                 const game = snapshot.val();
-                if (!game || game.player2) return alert('Partie invalide ou complète');
+                if (!game) return alert('Partie invalide');
+                if (game.player2) return alert('Partie complète');
                 update(gameRef, {
                     player2: currentUser.uid,
                     status: 'playing'
-                }).then(() => listenToGameState());
+                }).then(() => {
+                    chatContainer.style.display = 'block';
+                    listenToGameState();
+                    listenToChat();
+                }).catch(error => alert(`Erreur : ${error.message}`));
             }, { onlyOnce: true });
         });
 
@@ -540,7 +637,7 @@
                 gameState = game.gameState;
                 currentPlayer = game.currentPlayer;
                 updateGrid();
-                message.textContent = `Tour du Joueur ${currentPlayer}`;
+                message.textContent = `Tour du Joueur ${currentPlayer} (Partie: ${currentGameId})`;
                 if (game.status === 'waiting') {
                     message.textContent = `En attente d’un joueur (ID: ${currentGameId})...`;
                 }
@@ -551,7 +648,20 @@
         function updateGameStateInFirebase() {
             if (!currentGameId) return;
             const gameRef = ref(realtimeDb, `games/${currentGameId}`);
-            update(gameRef, { gameState, currentPlayer });
+            update(gameRef, { gameState, currentPlayer })
+                .catch(error => console.error(`Erreur Firebase : ${error.message}`));
+        }
+
+        // Gérer les invitations
+        function listenForInvites() {
+            const invitesRef = ref(realtimeDb, `invites/${currentUser.uid}`);
+            onChildAdded(invitesRef, snapshot => {
+                const invite = snapshot.val();
+                if (confirm(`Vous avez été invité à rejoindre la partie ${invite.gameId} par ${invite.from}. Accepter ?`)) {
+                    currentGameId = invite.gameId;
+                    joinGameButton.click();
+                }
+            });
         }
 
         // Gérer les amis
@@ -593,11 +703,52 @@
         window.inviteFriend = function(friendId) {
             if (!currentGameId) {
                 createGameButton.click();
-                setTimeout(() => alert(`Invitez votre ami ${friendId} avec cet ID : ${currentGameId}`), 500);
+                setTimeout(() => sendInvite(friendId), 500);
             } else {
-                alert(`Invitez votre ami ${friendId} avec cet ID : ${currentGameId}`);
+                sendInvite(friendId);
             }
         };
+
+        function sendInvite(friendId) {
+            const inviteRef = ref(realtimeDb, `invites/${friendId}/${currentGameId}`);
+            set(inviteRef, {
+                gameId: currentGameId,
+                from: currentUser.uid,
+                timestamp: Date.now()
+            }).then(() => {
+                alert(`Invitation envoyée à ${friendId} pour la partie ${currentGameId}`);
+            }).catch(error => alert(`Erreur : ${error.message}`));
+        }
+
+        // Chat
+        sendChatButton.addEventListener('click', sendChatMessage);
+        chatInput.addEventListener('keypress', (e) => {
+            if (e.key === 'Enter') sendChatMessage();
+        });
+
+        function sendChatMessage() {
+            if (!currentGameId || !chatInput.value) return;
+            const chatRef = push(ref(realtimeDb, `games/${currentGameId}/chat`));
+            set(chatRef, {
+                user: currentUser.uid,
+                message: chatInput.value,
+                timestamp: Date.now()
+            }).then(() => {
+                chatInput.value = '';
+            }).catch(error => alert(`Erreur : ${error.message}`));
+        }
+
+        function listenToChat() {
+            if (!currentGameId) return;
+            const chatRef = ref(realtimeDb, `games/${currentGameId}/chat`);
+            onChildAdded(chatRef, snapshot => {
+                const msg = snapshot.val();
+                const msgElement = document.createElement('div');
+                msgElement.textContent = `${msg.user}: ${msg.message}`;
+                chatMessages.appendChild(msgElement);
+                chatMessages.scrollTop = chatMessages.scrollHeight;
+            });
+        }
     </script>
 </body>
 </html>
