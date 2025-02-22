@@ -118,14 +118,15 @@
         </div>
     </div>
 
-    <!-- Scripts Firebase -->
-    <script src="https://www.gstatic.com/firebasejs/9.6.1/firebase-app.js"></script>
-    <script src="https://www.gstatic.com/firebasejs/9.6.1/firebase-auth.js"></script>
-    <script src="https://www.gstatic.com/firebasejs/9.6.1/firebase-firestore.js"></script>
-    <script src="https://www.gstatic.com/firebasejs/9.6.1/firebase-database.js"></script>
+    <!-- Script Firebase avec type="module" -->
+    <script type="module">
+        // Importer les modules Firebase nécessaires
+        import { initializeApp } from 'https://www.gstatic.com/firebasejs/9.22.0/firebase-app.js';
+        import { getAuth, signInWithEmailAndPassword, createUserWithEmailAndPassword, onAuthStateChanged } from 'https://www.gstatic.com/firebasejs/9.22.0/firebase-auth.js';
+        import { getFirestore, collection, doc, setDoc, serverTimestamp } from 'https://www.gstatic.com/firebasejs/9.22.0/firebase-firestore.js';
+        import { getDatabase, ref, push, set, onValue, update } from 'https://www.gstatic.com/firebasejs/9.22.0/firebase-database.js';
 
-    <script>
-        // Configuration Firebase (remplacez par vos propres valeurs depuis Firebase Console)
+        // Configuration Firebase (remplacez par vos propres valeurs)
         const firebaseConfig = {
             apiKey: "AIzaSyBmvD0pBikHRQlSj8VhGejiQufYsK2BsfQ",
             authDomain: "puissance-4-80249.firebaseapp.com",
@@ -134,12 +135,12 @@
             messagingSenderId: "829085554865",
             appId: "1:829085554865:web:6b2e12e2cd956d954dea90"
         };
-        firebase.initializeApp(firebaseConfig);
 
-        // Initialisation des services Firebase
-        const auth = firebase.auth();
-        const db = firebase.firestore();
-        const realtimeDb = firebase.database();
+        // Initialisation de Firebase
+        const app = initializeApp(firebaseConfig);
+        const auth = getAuth(app);
+        const db = getFirestore(app);
+        const realtimeDb = getDatabase(app);
 
         // Éléments DOM
         const authContainer = document.getElementById('auth-container');
@@ -168,12 +169,12 @@
         let currentGameId = null;
 
         // Vérification de l'état d'authentification
-        auth.onAuthStateChanged(user => {
+        onAuthStateChanged(auth, user => {
             if (user) {
                 currentUser = user;
                 authContainer.style.display = 'none';
                 gameContainer.style.display = 'block';
-                createGrid(); // Créer la grille dès que l'utilisateur est connecté
+                createGrid();
             } else {
                 authContainer.style.display = 'block';
                 gameContainer.style.display = 'none';
@@ -184,7 +185,7 @@
         loginButton.addEventListener('click', () => {
             const email = emailInput.value;
             const password = passwordInput.value;
-            auth.signInWithEmailAndPassword(email, password)
+            signInWithEmailAndPassword(auth, email, password)
                 .then(() => console.log('Connecté'))
                 .catch(error => alert(error.message));
         });
@@ -193,7 +194,7 @@
         signupButton.addEventListener('click', () => {
             const email = emailInput.value;
             const password = passwordInput.value;
-            auth.createUserWithEmailAndPassword(email, password)
+            createUserWithEmailAndPassword(auth, email, password)
                 .then(() => console.log('Inscrit'))
                 .catch(error => alert(error.message));
         });
@@ -255,7 +256,6 @@
 
         // Vérifier la victoire
         function checkWin(player) {
-            // Vérification horizontale
             for (let row = 0; row < 6; row++) {
                 for (let col = 0; col < 4; col++) {
                     if (gameState[row][col] === player &&
@@ -266,7 +266,6 @@
                     }
                 }
             }
-            // Vérification verticale
             for (let row = 0; row < 3; row++) {
                 for (let col = 0; col < 7; col++) {
                     if (gameState[row][col] === player &&
@@ -277,7 +276,6 @@
                     }
                 }
             }
-            // Vérification diagonale (haut-gauche vers bas-droite)
             for (let row = 0; row < 3; row++) {
                 for (let col = 0; col < 4; col++) {
                     if (gameState[row][col] === player &&
@@ -288,7 +286,6 @@
                     }
                 }
             }
-            // Vérification diagonale (bas-gauche vers haut-droite)
             for (let row = 3; row < 6; row++) {
                 for (let col = 0; col < 4; col++) {
                     if (gameState[row][col] === player &&
@@ -350,7 +347,7 @@
         // Créer une partie en ligne
         createGameButton.addEventListener('click', () => {
             if (!currentUser) return alert('Veuillez vous connecter');
-            const gameRef = realtimeDb.ref('games').push();
+            const gameRef = push(ref(realtimeDb, 'games'));
             currentGameId = gameRef.key;
             gameState = Array(6).fill().map(() => Array(7).fill(0));
             const gameData = {
@@ -360,8 +357,8 @@
                 gameState: gameState,
                 status: 'waiting'
             };
-            gameRef.set(gameData).then(() => {
-                message.textContent = 'Partie créée, en attente d’un joueur...';
+            set(gameRef, gameData).then(() => {
+                message.textContent = `Partie créée (ID: ${currentGameId}), en attente d’un joueur...`;
                 listenToGameState();
             });
         });
@@ -371,24 +368,24 @@
             const gameId = prompt('Entrez l’ID de la partie à rejoindre :');
             if (!gameId) return;
             currentGameId = gameId;
-            const gameRef = realtimeDb.ref(`games/${gameId}`);
-            gameRef.once('value', snapshot => {
+            const gameRef = ref(realtimeDb, `games/${gameId}`);
+            onValue(gameRef, snapshot => {
                 const game = snapshot.val();
                 if (!game || game.player2) return alert('Partie invalide ou complète');
-                gameRef.update({
+                update(gameRef, {
                     player2: currentUser.uid,
                     status: 'playing'
                 }).then(() => {
                     listenToGameState();
                 });
-            });
+            }, { onlyOnce: true });
         });
 
         // Écouter les changements dans l’état de la partie
         function listenToGameState() {
             if (!currentGameId) return;
-            const gameRef = realtimeDb.ref(`games/${currentGameId}`);
-            gameRef.on('value', snapshot => {
+            const gameRef = ref(realtimeDb, `games/${currentGameId}`);
+            onValue(gameRef, snapshot => {
                 const game = snapshot.val();
                 if (!game) return;
                 gameState = game.gameState;
@@ -404,8 +401,8 @@
         // Mettre à jour l’état de la partie dans Firebase
         function updateGameStateInFirebase() {
             if (!currentGameId) return;
-            const gameRef = realtimeDb.ref(`games/${currentGameId}`);
-            gameRef.update({
+            const gameRef = ref(realtimeDb, `games/${currentGameId}`);
+            update(gameRef, {
                 gameState: gameState,
                 currentPlayer: currentPlayer
             });
@@ -418,8 +415,8 @@
         submitFriendButton.addEventListener('click', () => {
             const friendId = friendIdInput.value;
             if (!friendId) return alert('Entrez un ID valide');
-            db.collection('friends').doc(currentUser.uid).collection('list').doc(friendId).set({
-                addedAt: firebase.firestore.FieldValue.serverTimestamp()
+            setDoc(doc(db, 'friends', currentUser.uid, 'list', friendId), {
+                addedAt: serverTimestamp()
             }).then(() => {
                 alert('Ami ajouté !');
                 friendForm.style.display = 'none';
