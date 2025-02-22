@@ -11,7 +11,6 @@
             color: #e0e0e0;
             margin: 0;
             padding: 20px;
-            text-align: center;
             display: flex;
             flex-direction: column;
             align-items: center;
@@ -22,6 +21,25 @@
             color: #00d4ff;
             text-shadow: 0 0 10px #00d4ff, 0 0 20px #00d4ff;
             margin-bottom: 20px;
+        }
+        .header {
+            width: 100%;
+            max-width: 1200px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 20px;
+        }
+        .account-tab {
+            cursor: pointer;
+            padding: 10px 20px;
+            background: linear-gradient(45deg, #00d4ff, #007bff);
+            border-radius: 20px;
+            box-shadow: 0 5px 15px rgba(0, 212, 255, 0.5);
+            transition: transform 0.3s;
+        }
+        .account-tab:hover {
+            transform: translateY(-3px);
         }
         .game-wrapper {
             display: flex;
@@ -85,7 +103,7 @@
             border-radius: 10px;
             color: #e0e0e0;
         }
-        .buttons, .friend-section {
+        .buttons, .friend-section, .account-section {
             margin: 20px;
             display: flex;
             flex-wrap: wrap;
@@ -110,7 +128,7 @@
         .auth-container, .game-container {
             display: none;
         }
-        .auth-form, .friend-form {
+        .auth-form, .friend-form, .account-form {
             margin: 20px auto;
             width: 400px;
             padding: 30px;
@@ -164,6 +182,13 @@
             display: flex;
             gap: 10px;
         }
+        .profile-pic {
+            width: 100px;
+            height: 100px;
+            border-radius: 50%;
+            margin: 10px auto;
+            display: block;
+        }
         @media (max-width: 900px) {
             .game-wrapper {
                 flex-direction: column;
@@ -191,7 +216,10 @@
     </div>
 
     <div class="game-container" id="game-container">
-        <h1>Puissance 4 - Next Level</h1>
+        <div class="header">
+            <h1>Puissance 4 - Next Level</h1>
+            <div class="account-tab" id="accountTab">Compte</div>
+        </div>
         <div class="message" id="message">Tour du Joueur 1</div>
         <div class="score">Score Joueur 1: <span id="score1">0</span> | Score Joueur 2: <span id="score2">0</span></div>
         <div class="stats">Victoires: <span id="wins">0</span> | Streak: <span id="streak">0</span></div>
@@ -227,11 +255,22 @@
                 <div class="friend-list" id="friendList"></div>
             </div>
         </div>
+        <div class="account-section" id="account-section" style="display: none;">
+            <div class="account-form">
+                <h3>Paramètres du Compte</h3>
+                <img id="profilePic" class="profile-pic" src="" alt="Photo de profil" style="display: none;">
+                <input type="text" id="newUsername" placeholder="Nouveau nom d'utilisateur">
+                <button id="updateUsername">Mettre à jour le nom</button>
+                <input type="password" id="newPassword" placeholder="Nouveau mot de passe">
+                <button id="updatePassword">Mettre à jour le mot de passe</button>
+                <button id="linkGoogle">Lier compte Google</button>
+            </div>
+        </div>
     </div>
 
     <script type="module">
         import { initializeApp } from 'https://www.gstatic.com/firebasejs/9.22.0/firebase-app.js';
-        import { getAuth, signInWithEmailAndPassword, createUserWithEmailAndPassword, GoogleAuthProvider, signInWithPopup, onAuthStateChanged } from 'https://www.gstatic.com/firebasejs/9.22.0/firebase-auth.js';
+        import { getAuth, signInWithEmailAndPassword, createUserWithEmailAndPassword, GoogleAuthProvider, signInWithPopup, onAuthStateChanged, updatePassword, linkWithPopup } from 'https://www.gstatic.com/firebasejs/9.22.0/firebase-auth.js';
         import { getFirestore, collection, doc, setDoc, getDocs, serverTimestamp, updateDoc } from 'https://www.gstatic.com/firebasejs/9.22.0/firebase-firestore.js';
         import { getDatabase, ref, push, set, onValue, update, onChildAdded } from 'https://www.gstatic.com/firebasejs/9.22.0/firebase-database.js';
 
@@ -259,6 +298,14 @@
         const loginButton = document.getElementById('login');
         const signupButton = document.getElementById('signup');
         const googleLoginButton = document.getElementById('googleLogin');
+        const accountTab = document.getElementById('accountTab');
+        const accountSection = document.getElementById('account-section');
+        const newUsernameInput = document.getElementById('newUsername');
+        const updateUsernameButton = document.getElementById('updateUsername');
+        const newPasswordInput = document.getElementById('newPassword');
+        const updatePasswordButton = document.getElementById('updatePassword');
+        const linkGoogleButton = document.getElementById('linkGoogle');
+        const profilePic = document.getElementById('profilePic');
         const grid = document.getElementById('grid');
         const message = document.getElementById('message');
         const score1 = document.getElementById('score1');
@@ -287,8 +334,8 @@
         let isPlayingIA = false;
         let currentUser = null;
         let currentGameId = null;
-        let stats = { wins: 0, streak: 0 };
         let playerRole = null; // 'player1' ou 'player2'
+        let stats = { wins: 0, losses: 0, streak: 0 };
 
         // Authentification
         onAuthStateChanged(auth, async user => {
@@ -301,6 +348,10 @@
                 createGrid();
                 loadFriends();
                 listenForInvites();
+                if (user.photoURL) {
+                    profilePic.src = user.photoURL;
+                    profilePic.style.display = 'block';
+                }
             } else {
                 authContainer.style.display = 'block';
                 gameContainer.style.display = 'none';
@@ -323,6 +374,45 @@
             signInWithPopup(auth, googleProvider)
                 .then(() => setUsername(usernameInput.value || auth.currentUser.displayName))
                 .catch(error => alert(error.message));
+        });
+
+        accountTab.addEventListener('click', () => {
+            accountSection.style.display = accountSection.style.display === 'none' ? 'block' : 'none';
+        });
+
+        updateUsernameButton.addEventListener('click', () => {
+            const newUsername = newUsernameInput.value;
+            if (newUsername) {
+                setUsername(newUsername).then(() => {
+                    newUsernameInput.value = '';
+                    loadUserProfile();
+                    loadFriends(); // Mettre à jour les listes d’amis
+                });
+            }
+        });
+
+        updatePasswordButton.addEventListener('click', () => {
+            const newPassword = newPasswordInput.value;
+            if (newPassword) {
+                updatePassword(auth.currentUser, newPassword)
+                    .then(() => {
+                        alert('Mot de passe mis à jour !');
+                        newPasswordInput.value = '';
+                    })
+                    .catch(error => alert(`Erreur : ${error.message}`));
+            }
+        });
+
+        linkGoogleButton.addEventListener('click', () => {
+            linkWithPopup(auth.currentUser, googleProvider)
+                .then(() => {
+                    alert('Compte Google lié !');
+                    if (auth.currentUser.photoURL) {
+                        profilePic.src = auth.currentUser.photoURL;
+                        profilePic.style.display = 'block';
+                    }
+                })
+                .catch(error => alert(`Erreur : ${error.message}`));
         });
 
         async function setUsername(username) {
@@ -358,8 +448,11 @@
 
         // Placer un jeton
         function dropPiece(column) {
-            if (currentGameId && playerRole === 'player1' && currentPlayer !== 1) return; // Joueur 1 ne joue que son tour
-            if (currentGameId && playerRole === 'player2' && currentPlayer !== 2) return; // Joueur 2 ne joue que son tour
+            if (!currentUser) return;
+            if (currentGameId) {
+                if (playerRole === 'player1' && currentPlayer !== 1) return;
+                if (playerRole === 'player2' && currentPlayer !== 2) return;
+            }
             for (let row = 5; row >= 0; row--) {
                 if (gameState[row][column] === 0) {
                     gameState[row][column] = currentPlayer;
@@ -367,12 +460,12 @@
                     updateGrid();
                     if (checkWin(currentPlayer)) {
                         message.textContent = `Joueur ${currentPlayer} gagne !`;
-                        updateStats(true);
+                        updateStats(currentPlayer === 1 ? 'win' : 'loss');
                         replayButton.style.display = 'block';
                         return;
                     } else if (isBoardFull()) {
                         message.textContent = 'Égalité !';
-                        updateStats(false);
+                        updateStats('tie');
                         replayButton.style.display = 'block';
                         return;
                     }
@@ -393,7 +486,7 @@
                 const row = cell.dataset.row;
                 const col = cell.dataset.col;
                 cell.classList.remove('player1', 'player2');
-                if (gameState[row][col] === 1) cell.classList.add('player1'); // Joueur 1 toujours rouge
+                if (gameState[row][col] === 1) cell.classList.add('player1');
                 else if (gameState[row][col] === 2) cell.classList.add('player2');
             });
         }
@@ -429,13 +522,31 @@
         }
 
         // Mettre à jour les stats
-        function updateStats(won) {
-            if (won && currentPlayer === 1) {
-                stats.wins++;
-                stats.streak++;
-                score1.textContent = parseInt(score1.textContent) + 1;
-            } else if (!won) {
-                stats.streak = 0;
+        function updateStats(result) {
+            if (playerRole === 'player1') {
+                if (result === 'win') {
+                    stats.wins++;
+                    stats.streak++;
+                    score1.textContent = parseInt(score1.textContent) + 1;
+                } else if (result === 'loss') {
+                    stats.losses++;
+                    stats.streak = 0;
+                    score2.textContent = parseInt(score2.textContent) + 1;
+                } else {
+                    stats.streak = 0;
+                }
+            } else if (playerRole === 'player2') {
+                if (result === 'win') {
+                    stats.wins++;
+                    stats.streak++;
+                    score2.textContent = parseInt(score2.textContent) + 1;
+                } else if (result === 'loss') {
+                    stats.losses++;
+                    stats.streak = 0;
+                    score1.textContent = parseInt(score1.textContent) + 1;
+                } else {
+                    stats.streak = 0;
+                }
             }
             wins.textContent = stats.wins;
             streak.textContent = stats.streak;
@@ -748,12 +859,17 @@
             friendList.innerHTML = '';
             try {
                 const friendsSnapshot = await getDocs(collection(db, 'friends', currentUser.uid, 'list'));
+                const usersSnapshot = await getDocs(collection(db, 'users'));
+                const userMap = {};
+                usersSnapshot.forEach(doc => {
+                    userMap[doc.id] = doc.data().username || doc.id;
+                });
                 friendsSnapshot.forEach(doc => {
                     const friendId = doc.id;
                     const friendItem = document.createElement('div');
                     friendItem.classList.add('friend-item');
                     friendItem.innerHTML = `
-                        <span>${friendId}</span>
+                        <span>${userMap[friendId] || friendId}</span>
                         <button onclick="inviteFriend('${friendId}')">Inviter</button>
                     `;
                     friendList.appendChild(friendItem);
