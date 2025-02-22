@@ -467,7 +467,7 @@
             gridWidth = parseInt(size[0]);
             gridHeight = parseInt(size[1]);
             winLength = gridWidth === 7 ? 4 : 5;
-            gameState = Array(gridHeight).fill().map(() => Array(gridWidth).fill(0));
+            if (!currentGameId) gameState = Array(gridHeight).fill().map(() => Array(gridWidth).fill(0));
             grid.style.gridTemplateColumns = `repeat(${gridWidth}, ${gridWidth === 7 ? '80px' : gridWidth === 9 ? '60px' : '50px'})`;
             grid.innerHTML = '';
             for (let row = 0; row < gridHeight; row++) {
@@ -488,29 +488,37 @@
         // Placer un jeton
         function dropPiece(column) {
             if (!currentUser) return;
-            if (currentGameId && !playerRole) return; // Pas de rôle défini
-            if (currentGameId && playerRole === 'player1' && currentPlayer !== 1) return;
-            if (currentGameId && playerRole === 'player2' && currentPlayer !== 2) return;
+            if (!playerRole) return; // Pas de rôle défini
+            const isPlayer1 = playerRole === 'player1';
+            const isPlayer2 = playerRole === 'player2';
+            const isMyTurn = (isPlayer1 && currentPlayer === 1) || (isPlayer2 && currentPlayer === 2);
+            if (currentGameId && !isMyTurn) {
+                console.log(`Pas votre tour ! Role: ${playerRole}, Current: ${currentPlayer}`);
+                return;
+            }
             for (let row = gridHeight - 1; row >= 0; row--) {
                 if (gameState[row][column] === 0) {
                     gameState[row][column] = currentPlayer;
-                    if (currentGameId) updateGameStateInFirebase();
-                    updateGrid();
-                    if (checkWin(currentPlayer)) {
-                        message.textContent = `Joueur ${currentPlayer} gagne !`;
-                        updateStats(currentPlayer === 1 ? 'win' : 'loss');
-                        replayButton.style.display = 'block';
-                        return;
-                    } else if (isBoardFull()) {
-                        message.textContent = 'Égalité !';
-                        updateStats('tie');
-                        replayButton.style.display = 'block';
-                        return;
-                    }
-                    currentPlayer = currentPlayer === 1 ? 2 : 1;
-                    message.textContent = `Tour du Joueur ${currentPlayer}${currentGameId ? ` (Partie: ${currentGameId})` : ''}`;
-                    if (isPlayingIA && currentPlayer === 2) {
-                        setTimeout(() => iaPlay(iaLevelSelect.value), 500);
+                    if (currentGameId) {
+                        updateGameStateInFirebase();
+                    } else {
+                        updateGrid();
+                        if (checkWin(currentPlayer)) {
+                            message.textContent = `Joueur ${currentPlayer} gagne !`;
+                            updateStats(currentPlayer === 1 ? 'win' : 'loss');
+                            replayButton.style.display = 'block';
+                            return;
+                        } else if (isBoardFull()) {
+                            message.textContent = 'Égalité !';
+                            updateStats('tie');
+                            replayButton.style.display = 'block';
+                            return;
+                        }
+                        currentPlayer = currentPlayer === 1 ? 2 : 1;
+                        message.textContent = `Tour du Joueur ${currentPlayer}${currentGameId ? ` (Partie: ${currentGameId})` : ''}`;
+                        if (isPlayingIA && currentPlayer === 2) {
+                            setTimeout(() => iaPlay(iaLevelSelect.value), 500);
+                        }
                     }
                     return;
                 }
@@ -531,25 +539,21 @@
 
         // Vérifier la victoire
         function checkWin(player) {
-            // Horizontal
             for (let row = 0; row < gridHeight; row++) {
                 for (let col = 0; col <= gridWidth - winLength; col++) {
                     if (checkLine(row, col, 0, 1, player)) return true;
                 }
             }
-            // Vertical
             for (let col = 0; col < gridWidth; col++) {
                 for (let row = 0; row <= gridHeight - winLength; row++) {
                     if (checkLine(row, col, 1, 0, player)) return true;
                 }
             }
-            // Diagonal (bas-gauche vers haut-droit)
             for (let row = winLength - 1; row < gridHeight; row++) {
                 for (let col = 0; col <= gridWidth - winLength; col++) {
                     if (checkLine(row, col, -1, 1, player)) return true;
                 }
             }
-            // Diagonal (haut-gauche vers bas-droit)
             for (let row = 0; row <= gridHeight - winLength; row++) {
                 for (let col = 0; col <= gridWidth - winLength; col++) {
                     if (checkLine(row, col, 1, 1, player)) return true;
@@ -852,7 +856,8 @@
                 createGrid();
                 update(gameRef, {
                     player2: currentUser.uid,
-                    status: 'playing'
+                    status: 'playing',
+                    currentPlayer: 1 // Assurez-vous que le joueur 1 commence
                 }).then(() => {
                     playerRole = 'player2';
                     chatContainer.style.display = 'block';
@@ -874,7 +879,8 @@
                 gridSizeSelect.value = game.gridSize;
                 createGrid();
                 updateGrid();
-                message.textContent = `Tour du Joueur ${currentPlayer} (Partie: ${currentGameId})`;
+                const isMyTurn = (playerRole === 'player1' && currentPlayer === 1) || (playerRole === 'player2' && currentPlayer === 2);
+                message.textContent = `Tour du Joueur ${currentPlayer} (Partie: ${currentGameId})${isMyTurn ? ' - Votre tour !' : ''}`;
                 if (game.status === 'waiting') {
                     message.textContent = `En attente d’un joueur (ID: ${currentGameId})...`;
                 }
