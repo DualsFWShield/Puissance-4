@@ -6,7 +6,7 @@
     <title>Puissance 4 en Ligne</title>
     <style>
         body {
-            font-family: 'Poppins', sans-serif;
+            font-family: 'Poppins', 'Arial', sans-serif; /* Ajout de police de secours */
             background: linear-gradient(135deg, #74ebd5, #acb6e5);
             text-align: center;
             margin: 0;
@@ -131,10 +131,12 @@
             border-bottom: 1px solid #eee;
         }
     </style>
+    <!-- Lien Google Fonts avec préconnexion pour éviter le blocage -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;600&display=swap" rel="stylesheet">
 </head>
 <body>
-    <!-- Interface de connexion -->
     <div class="auth-container" id="auth-container">
         <div class="auth-form">
             <h2>Connexion / Inscription</h2>
@@ -145,7 +147,6 @@
         </div>
     </div>
 
-    <!-- Interface de jeu -->
     <div class="game-container" id="game-container">
         <h1>Puissance 4 en Ligne</h1>
         <div class="message" id="message">Tour du Joueur 1</div>
@@ -174,7 +175,6 @@
         </div>
     </div>
 
-    <!-- Script Firebase -->
     <script type="module">
         import { initializeApp } from 'https://www.gstatic.com/firebasejs/9.22.0/firebase-app.js';
         import { getAuth, signInWithEmailAndPassword, createUserWithEmailAndPassword, onAuthStateChanged } from 'https://www.gstatic.com/firebasejs/9.22.0/firebase-auth.js';
@@ -492,7 +492,7 @@
         function evaluate(state) {
             if (checkWin(2)) return 1000;
             if (checkWin(1)) return -1000;
-            return 0; // Simplifié pour cet exemple
+            return 0;
         }
 
         // Créer une partie en ligne
@@ -568,22 +568,26 @@
                 alert('Ami ajouté !');
                 friendIdInput.value = '';
                 loadFriends();
-            }).catch(error => alert(error.message));
+            }).catch(error => alert(`Erreur : ${error.message}`));
         });
 
         async function loadFriends() {
             friendList.innerHTML = '';
-            const friendsSnapshot = await getDocs(collection(db, 'friends', currentUser.uid, 'list'));
-            friendsSnapshot.forEach(doc => {
-                const friendId = doc.id;
-                const friendItem = document.createElement('div');
-                friendItem.classList.add('friend-item');
-                friendItem.innerHTML = `
-                    <span>${friendId}</span>
-                    <button onclick="inviteFriend('${friendId}')">Inviter</button>
-                `;
-                friendList.appendChild(friendItem);
-            });
+            try {
+                const friendsSnapshot = await getDocs(collection(db, 'friends', currentUser.uid, 'list'));
+                friendsSnapshot.forEach(doc => {
+                    const friendId = doc.id;
+                    const friendItem = document.createElement('div');
+                    friendItem.classList.add('friend-item');
+                    friendItem.innerHTML = `
+                        <span>${friendId}</span>
+                        <button onclick="inviteFriend('${friendId}')">Inviter</button>
+                    `;
+                    friendList.appendChild(friendItem);
+                });
+            } catch (error) {
+                console.error('Erreur lors du chargement des amis :', error.message);
+            }
         }
 
         window.inviteFriend = function(friendId) {
