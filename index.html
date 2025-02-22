@@ -12,7 +12,10 @@
             margin: 0;
             padding: 20px;
             text-align: center;
-            overflow-x: hidden;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            min-height: 100vh;
         }
         h1 {
             font-size: 3em;
@@ -20,17 +23,23 @@
             text-shadow: 0 0 10px #00d4ff, 0 0 20px #00d4ff;
             margin-bottom: 20px;
         }
+        .game-wrapper {
+            display: flex;
+            flex-direction: row;
+            gap: 20px;
+            max-width: 1200px;
+            width: 100%;
+            justify-content: center;
+        }
         .grid {
             display: grid;
             grid-template-columns: repeat(7, 80px);
             gap: 10px;
-            margin: 0 auto;
             background: #333;
             padding: 20px;
             border-radius: 20px;
             box-shadow: 0 0 30px rgba(0, 212, 255, 0.5);
             width: fit-content;
-            position: relative;
         }
         .cell {
             width: 80px;
@@ -67,7 +76,6 @@
             border-radius: 15px;
             color: #00d4ff;
             text-shadow: 0 0 5px #00d4ff;
-            display: inline-block;
         }
         .score, .stats {
             font-size: 1.3em;
@@ -136,15 +144,15 @@
             border-bottom: 1px solid #444;
         }
         .chat-container {
-            margin: 20px auto;
-            width: 400px;
+            width: 300px;
             background: rgba(0, 0, 0, 0.9);
             padding: 20px;
             border-radius: 20px;
             box-shadow: 0 0 20px rgba(0, 212, 255, 0.3);
+            display: none;
         }
         .chat-messages {
-            max-height: 200px;
+            max-height: 300px;
             overflow-y: auto;
             margin-bottom: 10px;
             padding: 10px;
@@ -156,6 +164,16 @@
             display: flex;
             gap: 10px;
         }
+        @media (max-width: 900px) {
+            .game-wrapper {
+                flex-direction: column;
+                align-items: center;
+            }
+            .chat-container {
+                width: 100%;
+                max-width: 400px;
+            }
+        }
     </style>
     <link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@400;700&display=swap" rel="stylesheet">
 </head>
@@ -165,8 +183,10 @@
             <h2>Connexion / Inscription</h2>
             <input type="email" id="email" placeholder="Email">
             <input type="password" id="password" placeholder="Mot de passe">
+            <input type="text" id="username" placeholder="Nom d'utilisateur">
             <button id="login">Se connecter</button>
             <button id="signup">S'inscrire</button>
+            <button id="googleLogin">Connexion Google</button>
         </div>
     </div>
 
@@ -175,7 +195,16 @@
         <div class="message" id="message">Tour du Joueur 1</div>
         <div class="score">Score Joueur 1: <span id="score1">0</span> | Score Joueur 2: <span id="score2">0</span></div>
         <div class="stats">Victoires: <span id="wins">0</span> | Streak: <span id="streak">0</span></div>
-        <div class="grid" id="grid"></div>
+        <div class="game-wrapper">
+            <div class="grid" id="grid"></div>
+            <div class="chat-container" id="chat-container">
+                <div class="chat-messages" id="chatMessages"></div>
+                <div class="chat-input">
+                    <input type="text" id="chatInput" placeholder="Message...">
+                    <button id="sendChat">Envoyer</button>
+                </div>
+            </div>
+        </div>
         <div class="buttons">
             <button id="reset">Réinitialiser</button>
             <select id="iaLevel">
@@ -188,6 +217,7 @@
             <button id="createGame">Créer une partie</button>
             <button id="joinGame">Rejoindre une partie</button>
             <button id="showFriends">Gérer les amis</button>
+            <button id="replay" style="display: none;">Rejouer</button>
         </div>
         <div class="friend-section" id="friend-section" style="display: none;">
             <div class="friend-form">
@@ -197,19 +227,12 @@
                 <div class="friend-list" id="friendList"></div>
             </div>
         </div>
-        <div class="chat-container" id="chat-container" style="display: none;">
-            <div class="chat-messages" id="chatMessages"></div>
-            <div class="chat-input">
-                <input type="text" id="chatInput" placeholder="Envoyer un message...">
-                <button id="sendChat">Envoyer</button>
-            </div>
-        </div>
     </div>
 
     <script type="module">
         import { initializeApp } from 'https://www.gstatic.com/firebasejs/9.22.0/firebase-app.js';
-        import { getAuth, signInWithEmailAndPassword, createUserWithEmailAndPassword, onAuthStateChanged } from 'https://www.gstatic.com/firebasejs/9.22.0/firebase-auth.js';
-        import { getFirestore, collection, doc, setDoc, getDocs, serverTimestamp } from 'https://www.gstatic.com/firebasejs/9.22.0/firebase-firestore.js';
+        import { getAuth, signInWithEmailAndPassword, createUserWithEmailAndPassword, GoogleAuthProvider, signInWithPopup, onAuthStateChanged } from 'https://www.gstatic.com/firebasejs/9.22.0/firebase-auth.js';
+        import { getFirestore, collection, doc, setDoc, getDocs, serverTimestamp, updateDoc } from 'https://www.gstatic.com/firebasejs/9.22.0/firebase-firestore.js';
         import { getDatabase, ref, push, set, onValue, update, onChildAdded } from 'https://www.gstatic.com/firebasejs/9.22.0/firebase-database.js';
 
         const firebaseConfig = {
@@ -226,14 +249,16 @@
         const auth = getAuth(app);
         const db = getFirestore(app);
         const realtimeDb = getDatabase(app);
+        const googleProvider = new GoogleAuthProvider();
 
-        // Éléments DOM
         const authContainer = document.getElementById('auth-container');
         const gameContainer = document.getElementById('game-container');
         const emailInput = document.getElementById('email');
         const passwordInput = document.getElementById('password');
+        const usernameInput = document.getElementById('username');
         const loginButton = document.getElementById('login');
         const signupButton = document.getElementById('signup');
+        const googleLoginButton = document.getElementById('googleLogin');
         const grid = document.getElementById('grid');
         const message = document.getElementById('message');
         const score1 = document.getElementById('score1');
@@ -246,6 +271,7 @@
         const createGameButton = document.getElementById('createGame');
         const joinGameButton = document.getElementById('joinGame');
         const showFriendsButton = document.getElementById('showFriends');
+        const replayButton = document.getElementById('replay');
         const friendSection = document.getElementById('friend-section');
         const userIdSpan = document.getElementById('userId');
         const friendIdInput = document.getElementById('friendId');
@@ -262,14 +288,16 @@
         let currentUser = null;
         let currentGameId = null;
         let stats = { wins: 0, streak: 0 };
+        let playerRole = null; // 'player1' ou 'player2'
 
         // Authentification
-        onAuthStateChanged(auth, user => {
+        onAuthStateChanged(auth, async user => {
             if (user) {
                 currentUser = user;
                 authContainer.style.display = 'none';
                 gameContainer.style.display = 'block';
                 userIdSpan.textContent = user.uid;
+                await loadUserProfile();
                 createGrid();
                 loadFriends();
                 listenForInvites();
@@ -281,13 +309,36 @@
 
         loginButton.addEventListener('click', () => {
             signInWithEmailAndPassword(auth, emailInput.value, passwordInput.value)
+                .then(() => setUsername(usernameInput.value))
                 .catch(error => alert(error.message));
         });
 
         signupButton.addEventListener('click', () => {
             createUserWithEmailAndPassword(auth, emailInput.value, passwordInput.value)
+                .then(() => setUsername(usernameInput.value))
                 .catch(error => alert(error.message));
         });
+
+        googleLoginButton.addEventListener('click', () => {
+            signInWithPopup(auth, googleProvider)
+                .then(() => setUsername(usernameInput.value || auth.currentUser.displayName))
+                .catch(error => alert(error.message));
+        });
+
+        async function setUsername(username) {
+            if (username) {
+                await setDoc(doc(db, 'users', auth.currentUser.uid), { username }, { merge: true });
+            }
+        }
+
+        async function loadUserProfile() {
+            const userDoc = await getDocs(collection(db, 'users'));
+            userDoc.forEach(doc => {
+                if (doc.id === currentUser.uid) {
+                    message.textContent = `Bienvenue, ${doc.data().username || 'Joueur'} !`;
+                }
+            });
+        }
 
         // Créer la grille
         function createGrid() {
@@ -307,6 +358,8 @@
 
         // Placer un jeton
         function dropPiece(column) {
+            if (currentGameId && playerRole === 'player1' && currentPlayer !== 1) return; // Joueur 1 ne joue que son tour
+            if (currentGameId && playerRole === 'player2' && currentPlayer !== 2) return; // Joueur 2 ne joue que son tour
             for (let row = 5; row >= 0; row--) {
                 if (gameState[row][column] === 0) {
                     gameState[row][column] = currentPlayer;
@@ -315,14 +368,16 @@
                     if (checkWin(currentPlayer)) {
                         message.textContent = `Joueur ${currentPlayer} gagne !`;
                         updateStats(true);
+                        replayButton.style.display = 'block';
                         return;
                     } else if (isBoardFull()) {
                         message.textContent = 'Égalité !';
                         updateStats(false);
+                        replayButton.style.display = 'block';
                         return;
                     }
                     currentPlayer = currentPlayer === 1 ? 2 : 1;
-                    message.textContent = `Tour du Joueur ${currentPlayer}`;
+                    message.textContent = `Tour du Joueur ${currentPlayer}${currentGameId ? ` (Partie: ${currentGameId})` : ''}`;
                     if (isPlayingIA && currentPlayer === 2) {
                         setTimeout(() => iaPlay(iaLevelSelect.value), 500);
                     }
@@ -338,7 +393,7 @@
                 const row = cell.dataset.row;
                 const col = cell.dataset.col;
                 cell.classList.remove('player1', 'player2');
-                if (gameState[row][col] === 1) cell.classList.add('player1');
+                if (gameState[row][col] === 1) cell.classList.add('player1'); // Joueur 1 toujours rouge
                 else if (gameState[row][col] === 2) cell.classList.add('player2');
             });
         }
@@ -373,7 +428,7 @@
             return gameState.every(row => row.every(cell => cell !== 0));
         }
 
-        // Mettre à jour les scores et stats
+        // Mettre à jour les stats
         function updateStats(won) {
             if (won && currentPlayer === 1) {
                 stats.wins++;
@@ -393,7 +448,9 @@
             message.textContent = 'Tour du Joueur 1';
             isPlayingIA = false;
             currentGameId = null;
+            playerRole = null;
             chatContainer.style.display = 'none';
+            replayButton.style.display = 'none';
             updateGrid();
         });
 
@@ -401,6 +458,7 @@
         playIAButton.addEventListener('click', () => {
             resetButton.click();
             isPlayingIA = true;
+            playerRole = 'player1';
             message.textContent = `Tour du Joueur 1 (Vous) - IA ${iaLevelSelect.value}`;
         });
 
@@ -599,6 +657,7 @@
                 chat: []
             };
             set(gameRef, gameData).then(() => {
+                playerRole = 'player1';
                 message.textContent = `Partie créée (ID: ${currentGameId}) - En attente...`;
                 chatContainer.style.display = 'block';
                 listenToGameState();
@@ -610,6 +669,10 @@
         joinGameButton.addEventListener('click', () => {
             const gameId = prompt('Entrez l’ID de la partie à rejoindre :');
             if (!gameId) return;
+            joinGame(gameId);
+        });
+
+        function joinGame(gameId) {
             currentGameId = gameId;
             const gameRef = ref(realtimeDb, `games/${gameId}`);
             onValue(gameRef, snapshot => {
@@ -620,12 +683,13 @@
                     player2: currentUser.uid,
                     status: 'playing'
                 }).then(() => {
+                    playerRole = 'player2';
                     chatContainer.style.display = 'block';
                     listenToGameState();
                     listenToChat();
                 }).catch(error => alert(`Erreur : ${error.message}`));
             }, { onlyOnce: true });
-        });
+        }
 
         // Écouter l’état de la partie
         function listenToGameState() {
@@ -658,8 +722,7 @@
             onChildAdded(invitesRef, snapshot => {
                 const invite = snapshot.val();
                 if (confirm(`Vous avez été invité à rejoindre la partie ${invite.gameId} par ${invite.from}. Accepter ?`)) {
-                    currentGameId = invite.gameId;
-                    joinGameButton.click();
+                    joinGame(invite.gameId);
                 }
             });
         }
@@ -720,7 +783,7 @@
             }).catch(error => alert(`Erreur : ${error.message}`));
         }
 
-        // Chat
+        // Chat avec emojis
         sendChatButton.addEventListener('click', sendChatMessage);
         chatInput.addEventListener('keypress', (e) => {
             if (e.key === 'Enter') sendChatMessage();
@@ -749,6 +812,19 @@
                 chatMessages.scrollTop = chatMessages.scrollHeight;
             });
         }
+
+        // Rejouer
+        replayButton.addEventListener('click', () => {
+            if (isPlayingIA) {
+                playIAButton.click();
+            } else if (currentGameId) {
+                gameState = Array(6).fill().map(() => Array(7).fill(0));
+                currentPlayer = 1;
+                updateGameStateInFirebase();
+                message.textContent = `Tour du Joueur 1 (Partie: ${currentGameId})`;
+                replayButton.style.display = 'none';
+            }
+        });
     </script>
 </body>
 </html>
