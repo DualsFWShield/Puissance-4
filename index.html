@@ -19,7 +19,6 @@
         h1 {
             font-size: 3em;
             color: #00d4ff;
-            text-shadow: 0 0 10px #00d4ff, 0 0 20px #00d4ff;
             margin-bottom: 20px;
         }
         .header {
@@ -35,11 +34,10 @@
             padding: 10px 20px;
             background: linear-gradient(45deg, #00d4ff, #007bff);
             border-radius: 20px;
-            box-shadow: 0 5px 15px rgba(0, 212, 255, 0.5);
-            transition: transform 0.3s;
             display: flex;
             align-items: center;
             gap: 10px;
+            transition: transform 0.3s;
         }
         .account-tab:hover {
             transform: translateY(-3px);
@@ -64,7 +62,6 @@
             background: #333;
             padding: 20px;
             border-radius: 20px;
-            box-shadow: 0 0 30px rgba(0, 212, 255, 0.5);
             width: fit-content;
         }
         .cell {
@@ -72,20 +69,17 @@
             border: 3px solid #444;
             border-radius: 50%;
             cursor: pointer;
-            transition: transform 0.3s ease, box-shadow 0.3s ease;
+            transition: transform 0.3s ease;
         }
         .cell:hover {
             transform: scale(1.15);
-            box-shadow: 0 0 15px rgba(0, 212, 255, 0.7);
         }
         .player1 {
             background: radial-gradient(circle, #ff5555, #cc0000);
-            box-shadow: 0 0 20px #ff5555;
             animation: drop 0.6s ease;
         }
         .player2 {
             background: radial-gradient(circle, #ffd700, #ffaa00);
-            box-shadow: 0 0 20px #ffd700;
             animation: drop 0.6s ease;
         }
         @keyframes drop {
@@ -99,7 +93,6 @@
             padding: 15px 25px;
             border-radius: 15px;
             color: #00d4ff;
-            text-shadow: 0 0 5px #00d4ff;
         }
         .score, .stats {
             font-size: 1.3em;
@@ -124,12 +117,10 @@
             color: #fff;
             border: none;
             border-radius: 30px;
-            box-shadow: 0 5px 20px rgba(0, 212, 255, 0.5);
-            transition: transform 0.3s, box-shadow 0.3s;
+            transition: transform 0.3s;
         }
         button:hover {
             transform: translateY(-5px);
-            box-shadow: 0 10px 30px rgba(0, 212, 255, 0.8);
         }
         .auth-container, .game-container {
             display: none;
@@ -140,7 +131,6 @@
             padding: 30px;
             background: rgba(0, 0, 0, 0.9);
             border-radius: 20px;
-            box-shadow: 0 0 20px rgba(0, 212, 255, 0.3);
         }
         input, select {
             width: 100%;
@@ -172,7 +162,6 @@
             background: rgba(0, 0, 0, 0.9);
             padding: 20px;
             border-radius: 20px;
-            box-shadow: 0 0 20px rgba(0, 212, 255, 0.3);
             display: none;
         }
         .chat-messages {
@@ -223,7 +212,7 @@
 
     <div class="game-container" id="game-container">
         <div class="header">
-            <h1>Puissance 4 - Next Level</h1>
+            <h1>Puissance 4</h1>
             <div class="account-tab" id="accountTab">
                 <img id="accountPic" class="account-pic" src="" alt="PP">
                 <span>Compte</span>
@@ -286,17 +275,17 @@
     <script type="module">
         import { initializeApp } from 'https://www.gstatic.com/firebasejs/9.22.0/firebase-app.js';
         import { getAuth, signInWithEmailAndPassword, createUserWithEmailAndPassword, GoogleAuthProvider, signInWithPopup, onAuthStateChanged, updatePassword, linkWithPopup } from 'https://www.gstatic.com/firebasejs/9.22.0/firebase-auth.js';
-        import { getFirestore, collection, doc, setDoc, getDocs, serverTimestamp, updateDoc, deleteDoc } from 'https://www.gstatic.com/firebasejs/9.22.0/firebase-firestore.js';
+        import { getFirestore, collection, doc, setDoc, getDocs, serverTimestamp, updateDoc } from 'https://www.gstatic.com/firebasejs/9.22.0/firebase-firestore.js';
         import { getDatabase, ref, push, set, onValue, update, onChildAdded, remove } from 'https://www.gstatic.com/firebasejs/9.22.0/firebase-database.js';
 
         const firebaseConfig = {
-          apiKey: "AIzaSyBmvD0pBikHRQlSj8VhGejiQufYsK2BsfQ",
-          authDomain: "puissance-4-80249.firebaseapp.com",
-          databaseURL: "https://puissance-4-80249-default-rtdb.europe-west1.firebasedatabase.app",
-          projectId: "puissance-4-80249",
-          storageBucket: "puissance-4-80249.firebasestorage.app",
-          messagingSenderId: "829085554865",
-          appId: "1:829085554865:web:6b2e12e2cd956d954dea90"
+            apiKey: "AIzaSyBmvD0pBikHRQlSj8VhGejiQufYsK2BsfQ",
+            authDomain: "puissance-4-80249.firebaseapp.com",
+            databaseURL: "https://puissance-4-80249-default-rtdb.europe-west1.firebasedatabase.app",
+            projectId: "puissance-4-80249",
+            storageBucket: "puissance-4-80249.firebasestorage.app",
+            messagingSenderId: "829085554865",
+            appId: "1:829085554865:web:6b2e12e2cd956d954dea90"
         };
 
         const app = initializeApp(firebaseConfig);
@@ -492,33 +481,42 @@
             const isPlayer1 = playerRole === 'player1';
             const isPlayer2 = playerRole === 'player2';
             const isMyTurn = (isPlayer1 && currentPlayer === 1) || (isPlayer2 && currentPlayer === 2);
-            if (currentGameId && !isMyTurn) {
-                console.log(`Pas votre tour ! Role: ${playerRole}, Current: ${currentPlayer}`);
+
+            if (!isMyTurn) {
+                message.textContent = "Ce n'est pas votre tour !";
                 return;
             }
+
             for (let row = gridHeight - 1; row >= 0; row--) {
                 if (gameState[row][column] === 0) {
                     gameState[row][column] = currentPlayer;
+                    updateGrid();
+
+                    if (checkWin(currentPlayer)) {
+                        message.textContent = `Joueur ${currentPlayer} gagne !`;
+                        updateStats(currentPlayer === 1 ? 'win' : 'loss');
+                        replayButton.style.display = 'block';
+                        if (currentGameId) {
+                            updateGameStateInFirebase();
+                        }
+                        return;
+                    } else if (isBoardFull()) {
+                        message.textContent = 'Égalité !';
+                        updateStats('tie');
+                        replayButton.style.display = 'block';
+                        if (currentGameId) {
+                            updateGameStateInFirebase();
+                        }
+                        return;
+                    }
+
+                    currentPlayer = currentPlayer === 1 ? 2 : 1;
+                    message.textContent = `Tour du Joueur ${currentPlayer}${currentGameId ? ` (Partie: ${currentGameId})` : ''}`;
+
                     if (currentGameId) {
                         updateGameStateInFirebase();
-                    } else {
-                        updateGrid();
-                        if (checkWin(currentPlayer)) {
-                            message.textContent = `Joueur ${currentPlayer} gagne !`;
-                            updateStats(currentPlayer === 1 ? 'win' : 'loss');
-                            replayButton.style.display = 'block';
-                            return;
-                        } else if (isBoardFull()) {
-                            message.textContent = 'Égalité !';
-                            updateStats('tie');
-                            replayButton.style.display = 'block';
-                            return;
-                        }
-                        currentPlayer = currentPlayer === 1 ? 2 : 1;
-                        message.textContent = `Tour du Joueur ${currentPlayer}${currentGameId ? ` (Partie: ${currentGameId})` : ''}`;
-                        if (isPlayingIA && currentPlayer === 2) {
-                            setTimeout(() => iaPlay(iaLevelSelect.value), 500);
-                        }
+                    } else if (isPlayingIA && currentPlayer === 2) {
+                        setTimeout(() => iaPlay(iaLevelSelect.value), 500);
                     }
                     return;
                 }
@@ -902,11 +900,13 @@
                 const inviteId = snapshot.key;
                 const invite = snapshot.val();
                 if (!processedInvites.has(inviteId)) {
+                    console.log(`Nouvelle invitation reçue : ${inviteId} - Game: ${invite.gameId}`);
                     processedInvites.add(inviteId);
                     if (confirm(`Vous avez été invité à rejoindre la partie ${invite.gameId} par ${invite.from}. Accepter ?`)) {
                         joinGame(invite.gameId);
                     }
                     remove(ref(realtimeDb, `invites/${currentUser.uid}/${inviteId}`))
+                        .then(() => console.log(`Invitation ${inviteId} supprimée avec succès`))
                         .catch(error => console.error(`Erreur lors de la suppression de l'invitation : ${error.message}`));
                 }
             });
@@ -969,6 +969,7 @@
                 from: currentUser.uid,
                 timestamp: Date.now()
             }).then(() => {
+                console.log(`Invitation envoyée à ${friendId} pour la partie ${currentGameId}`);
                 alert(`Invitation envoyée à ${friendId} pour la partie ${currentGameId}`);
             }).catch(error => alert(`Erreur : ${error.message}`));
         }
