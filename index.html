@@ -494,7 +494,7 @@
             const isPlayer1 = playerRole === 'player1';
             const isPlayer2 = playerRole === 'player2';
             const isMyTurn = (isPlayer1 && currentPlayer === 1) || (isPlayer2 && currentPlayer === 2);
-            
+
             if (!isMyTurn) {
                 message.textContent = "Ce n'est pas votre tour !";
                 return;
@@ -529,6 +529,7 @@
                     if (currentGameId) {
                         updateGameStateInFirebase();
                     } else if (isPlayingIA && currentPlayer === 2) {
+                        console.log('Tour de l’IA');
                         setTimeout(() => iaPlay(iaLevelSelect.value), 500);
                     }
                     return;
@@ -638,14 +639,19 @@
 
         // IA améliorée
         function iaPlay(level) {
+            console.log(`IA joue au niveau ${level}`);
             let availableColumns = [];
             for (let col = 0; col < gridWidth; col++) {
                 if (gameState[0][col] === 0) availableColumns.push(col);
             }
-            if (availableColumns.length === 0) return;
+            if (availableColumns.length === 0) {
+                console.log('Aucune colonne disponible pour l’IA');
+                return;
+            }
 
+            let column;
             if (level === 'easy') {
-                dropPiece(availableColumns[Math.floor(Math.random() * availableColumns.length)]);
+                column = availableColumns[Math.floor(Math.random() * availableColumns.length)];
             } else if (level === 'normal') {
                 for (let col of availableColumns) {
                     let tempState = JSON.parse(JSON.stringify(gameState));
@@ -653,23 +659,33 @@
                         if (tempState[row][col] === 0) {
                             tempState[row][col] = 2;
                             if (checkWin(2)) {
-                                dropPiece(col);
-                                return;
+                                column = col;
+                                break;
                             }
                             tempState[row][col] = 1;
                             if (checkWin(1)) {
-                                dropPiece(col);
-                                return;
+                                column = col;
+                                break;
                             }
                             break;
                         }
                     }
+                    if (column !== undefined) break;
                 }
-                dropPiece(availableColumns[Math.floor(Math.random() * availableColumns.length)]);
+                if (column === undefined) {
+                    column = availableColumns[Math.floor(Math.random() * availableColumns.length)];
+                }
             } else if (level === 'hard') {
-                dropPiece(minimax(gameState, 4, true)[1]);
+                column = minimax(gameState, 4, true)[1];
             } else if (level === 'extreme') {
-                dropPiece(minimaxAlphaBeta(gameState, 6, -Infinity, Infinity, true)[1]);
+                column = minimaxAlphaBeta(gameState, 6, -Infinity, Infinity, true)[1];
+            }
+
+            if (column !== null && column !== undefined) {
+                console.log(`IA choisit la colonne ${column}`);
+                dropPiece(column);
+            } else {
+                console.error('IA n’a pas pu choisir une colonne valide');
             }
         }
 
