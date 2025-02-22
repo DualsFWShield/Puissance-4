@@ -493,7 +493,7 @@
             if (!playerRole) return; // Pas de rôle défini
             const isPlayer1 = playerRole === 'player1';
             const isPlayer2 = playerRole === 'player2';
-            const isMyTurn = (isPlayer1 && currentPlayer === 1) || (isPlayer2 && currentPlayer === 2);
+            const isMyTurn = (isPlayer1 && currentPlayer === 1) || (isPlayer2 && currentPlayer === 2) || (!currentGameId && isPlayingIA && currentPlayer === 2);
 
             if (!isMyTurn) {
                 message.textContent = "Ce n'est pas votre tour !";
@@ -686,6 +686,8 @@
                 dropPiece(column);
             } else {
                 console.error('IA n’a pas pu choisir une colonne valide');
+                column = availableColumns[Math.floor(Math.random() * availableColumns.length)];
+                dropPiece(column);
             }
         }
 
