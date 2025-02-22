@@ -6,85 +6,132 @@
     <title>Puissance 4 en Ligne</title>
     <style>
         body {
-            font-family: Arial, sans-serif;
-            background-color: #f0f0f0;
+            font-family: 'Poppins', sans-serif;
+            background: linear-gradient(135deg, #74ebd5, #acb6e5);
             text-align: center;
             margin: 0;
-            padding: 0;
+            padding: 20px;
+            color: #333;
         }
         h1 {
-            color: #333;
-            margin-top: 20px;
+            font-size: 2.5em;
+            margin-bottom: 20px;
+            color: #fff;
+            text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.2);
         }
         .grid {
             display: grid;
-            grid-template-columns: repeat(7, 60px);
-            gap: 5px;
-            margin: 20px auto;
-            background-color: #fff;
-            padding: 10px;
-            border-radius: 10px;
-            box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
+            grid-template-columns: repeat(7, 70px);
+            gap: 8px;
+            margin: 0 auto;
+            background: #fff;
+            padding: 15px;
+            border-radius: 15px;
+            box-shadow: 0 10px 20px rgba(0, 0, 0, 0.15);
             width: fit-content;
+            position: relative;
+            overflow: hidden;
         }
         .cell {
-            width: 60px;
-            height: 60px;
-            background-color: #eee;
-            border: 1px solid #ccc;
+            width: 70px;
+            height: 70px;
+            background: #f0f0f0;
+            border: 2px solid #ddd;
             border-radius: 50%;
             cursor: pointer;
+            transition: transform 0.2s ease, background 0.3s ease;
+        }
+        .cell:hover {
+            transform: scale(1.1);
         }
         .player1 {
-            background-color: #ff4d4d;
+            background: radial-gradient(circle, #ff6b6b, #ff4d4d);
+            animation: drop 0.5s ease;
         }
         .player2 {
-            background-color: #ffd700;
+            background: radial-gradient(circle, #ffe066, #ffd700);
+            animation: drop 0.5s ease;
+        }
+        @keyframes drop {
+            from { transform: translateY(-100px); }
+            to { transform: translateY(0); }
         }
         .message {
-            font-size: 20px;
+            font-size: 1.5em;
             margin: 20px;
-            color: #333;
+            color: #fff;
+            background: rgba(0, 0, 0, 0.7);
+            padding: 10px 20px;
+            border-radius: 10px;
+            display: inline-block;
         }
         .score {
-            font-size: 18px;
-            margin: 10px;
+            font-size: 1.2em;
+            margin: 15px;
+            color: #fff;
+            background: rgba(255, 255, 255, 0.1);
+            padding: 10px;
+            border-radius: 8px;
         }
-        .buttons {
+        .buttons, .friend-section {
             margin: 20px;
+            display: flex;
+            flex-wrap: wrap;
+            justify-content: center;
+            gap: 10px;
         }
         button {
-            padding: 10px 20px;
-            font-size: 16px;
-            margin: 5px;
+            padding: 12px 25px;
+            font-size: 1em;
             cursor: pointer;
-            background-color: #4CAF50;
+            background: linear-gradient(45deg, #4CAF50, #66bb6a);
             color: white;
             border: none;
-            border-radius: 5px;
+            border-radius: 25px;
+            box-shadow: 0 5px 15px rgba(0, 0, 0, 0.1);
+            transition: transform 0.2s, background 0.3s;
         }
         button:hover {
-            background-color: #45a049;
+            transform: translateY(-3px);
+            background: linear-gradient(45deg, #45a049, #5cb85c);
         }
         .auth-container, .game-container {
             display: none;
         }
         .auth-form, .friend-form {
             margin: 20px auto;
-            width: 300px;
-            padding: 20px;
-            background-color: #fff;
-            border-radius: 10px;
-            box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
+            width: 350px;
+            padding: 25px;
+            background: rgba(255, 255, 255, 0.9);
+            border-radius: 15px;
+            box-shadow: 0 10px 20px rgba(0, 0, 0, 0.15);
         }
-        input {
+        input, select {
             width: 100%;
-            padding: 10px;
-            margin: 5px 0;
+            padding: 12px;
+            margin: 8px 0;
             border: 1px solid #ccc;
-            border-radius: 5px;
+            border-radius: 8px;
+            box-sizing: border-box;
+            font-size: 1em;
+        }
+        .friend-list {
+            max-height: 200px;
+            overflow-y: auto;
+            margin: 10px 0;
+            padding: 10px;
+            background: rgba(255, 255, 255, 0.8);
+            border-radius: 10px;
+        }
+        .friend-item {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 8px;
+            border-bottom: 1px solid #eee;
         }
     </style>
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;600&display=swap" rel="stylesheet">
 </head>
 <body>
     <!-- Interface de connexion -->
@@ -106,37 +153,44 @@
         <div class="grid" id="grid"></div>
         <div class="buttons">
             <button id="reset">Réinitialiser</button>
+            <select id="iaLevel">
+                <option value="easy">IA Facile</option>
+                <option value="normal">IA Normal</option>
+                <option value="hard">IA Difficile</option>
+                <option value="extreme">IA Extrême</option>
+            </select>
             <button id="playIA">Jouer contre IA</button>
             <button id="createGame">Créer une partie</button>
             <button id="joinGame">Rejoindre une partie</button>
-            <button id="addFriend">Ajouter un ami</button>
+            <button id="showFriends">Gérer les amis</button>
         </div>
-        <div class="friend-form" id="friend-form" style="display: none;">
-            <h3>Ajouter un ami</h3>
-            <input type="text" id="friendId" placeholder="ID de l'ami">
-            <button id="submitFriend">Ajouter</button>
+        <div class="friend-section" id="friend-section" style="display: none;">
+            <div class="friend-form">
+                <h3>Votre code d'ami : <span id="userId"></span></h3>
+                <input type="text" id="friendId" placeholder="ID de l'ami à ajouter">
+                <button id="submitFriend">Ajouter un ami</button>
+                <div class="friend-list" id="friendList"></div>
+            </div>
         </div>
     </div>
 
-    <!-- Script Firebase avec type="module" -->
+    <!-- Script Firebase -->
     <script type="module">
-        // Importer les modules Firebase nécessaires
         import { initializeApp } from 'https://www.gstatic.com/firebasejs/9.22.0/firebase-app.js';
         import { getAuth, signInWithEmailAndPassword, createUserWithEmailAndPassword, onAuthStateChanged } from 'https://www.gstatic.com/firebasejs/9.22.0/firebase-auth.js';
-        import { getFirestore, collection, doc, setDoc, serverTimestamp } from 'https://www.gstatic.com/firebasejs/9.22.0/firebase-firestore.js';
+        import { getFirestore, collection, doc, setDoc, getDocs, serverTimestamp } from 'https://www.gstatic.com/firebasejs/9.22.0/firebase-firestore.js';
         import { getDatabase, ref, push, set, onValue, update } from 'https://www.gstatic.com/firebasejs/9.22.0/firebase-database.js';
 
-        // Configuration Firebase (remplacez par vos propres valeurs)
         const firebaseConfig = {
-            apiKey: "AIzaSyBmvD0pBikHRQlSj8VhGejiQufYsK2BsfQ",
-            authDomain: "puissance-4-80249.firebaseapp.com",
-            projectId: "puissance-4-80249",
-            storageBucket: "puissance-4-80249.firebasestorage.app",
-            messagingSenderId: "829085554865",
-            appId: "1:829085554865:web:6b2e12e2cd956d954dea90"
+            apiKey: "VOTRE_API_KEY",
+            authDomain: "VOTRE_AUTH_DOMAIN",
+            projectId: "VOTRE_PROJECT_ID",
+            storageBucket: "VOTRE_STORAGE_BUCKET",
+            messagingSenderId: "VOTRE_MESSAGING_SENDER_ID",
+            appId: "VOTRE_APP_ID",
+            databaseURL: "VOTRE_DATABASE_URL"
         };
 
-        // Initialisation de Firebase
         const app = initializeApp(firebaseConfig);
         const auth = getAuth(app);
         const db = getFirestore(app);
@@ -155,12 +209,15 @@
         const score2 = document.getElementById('score2');
         const resetButton = document.getElementById('reset');
         const playIAButton = document.getElementById('playIA');
+        const iaLevelSelect = document.getElementById('iaLevel');
         const createGameButton = document.getElementById('createGame');
         const joinGameButton = document.getElementById('joinGame');
-        const addFriendButton = document.getElementById('addFriend');
-        const friendForm = document.getElementById('friend-form');
+        const showFriendsButton = document.getElementById('showFriends');
+        const friendSection = document.getElementById('friend-section');
+        const userIdSpan = document.getElementById('userId');
         const friendIdInput = document.getElementById('friendId');
         const submitFriendButton = document.getElementById('submitFriend');
+        const friendList = document.getElementById('friendList');
 
         let currentPlayer = 1;
         let gameState = Array(6).fill().map(() => Array(7).fill(0));
@@ -168,34 +225,28 @@
         let currentUser = null;
         let currentGameId = null;
 
-        // Vérification de l'état d'authentification
+        // Authentification
         onAuthStateChanged(auth, user => {
             if (user) {
                 currentUser = user;
                 authContainer.style.display = 'none';
                 gameContainer.style.display = 'block';
+                userIdSpan.textContent = user.uid;
                 createGrid();
+                loadFriends();
             } else {
                 authContainer.style.display = 'block';
                 gameContainer.style.display = 'none';
             }
         });
 
-        // Connexion
         loginButton.addEventListener('click', () => {
-            const email = emailInput.value;
-            const password = passwordInput.value;
-            signInWithEmailAndPassword(auth, email, password)
-                .then(() => console.log('Connecté'))
+            signInWithEmailAndPassword(auth, emailInput.value, passwordInput.value)
                 .catch(error => alert(error.message));
         });
 
-        // Inscription
         signupButton.addEventListener('click', () => {
-            const email = emailInput.value;
-            const password = passwordInput.value;
-            createUserWithEmailAndPassword(auth, email, password)
-                .then(() => console.log('Inscrit'))
+            createUserWithEmailAndPassword(auth, emailInput.value, passwordInput.value)
                 .catch(error => alert(error.message));
         });
 
@@ -220,9 +271,7 @@
             for (let row = 5; row >= 0; row--) {
                 if (gameState[row][column] === 0) {
                     gameState[row][column] = currentPlayer;
-                    if (currentGameId) {
-                        updateGameStateInFirebase();
-                    }
+                    if (currentGameId) updateGameStateInFirebase();
                     updateGrid();
                     if (checkWin(currentPlayer)) {
                         message.textContent = `Joueur ${currentPlayer} gagne !`;
@@ -235,14 +284,14 @@
                     currentPlayer = currentPlayer === 1 ? 2 : 1;
                     message.textContent = `Tour du Joueur ${currentPlayer}`;
                     if (isPlayingIA && currentPlayer === 2) {
-                        setTimeout(iaPlay, 500);
+                        setTimeout(() => iaPlay(iaLevelSelect.value), 500);
                     }
                     return;
                 }
             }
         }
 
-        // Mettre à jour la grille visuellement
+        // Mettre à jour la grille
         function updateGrid() {
             const cells = document.querySelectorAll('.cell');
             cells.forEach(cell => {
@@ -258,42 +307,22 @@
         function checkWin(player) {
             for (let row = 0; row < 6; row++) {
                 for (let col = 0; col < 4; col++) {
-                    if (gameState[row][col] === player &&
-                        gameState[row][col + 1] === player &&
-                        gameState[row][col + 2] === player &&
-                        gameState[row][col + 3] === player) {
-                        return true;
-                    }
+                    if (gameState[row][col] === player && gameState[row][col + 1] === player && gameState[row][col + 2] === player && gameState[row][col + 3] === player) return true;
                 }
             }
             for (let row = 0; row < 3; row++) {
                 for (let col = 0; col < 7; col++) {
-                    if (gameState[row][col] === player &&
-                        gameState[row + 1][col] === player &&
-                        gameState[row + 2][col] === player &&
-                        gameState[row + 3][col] === player) {
-                        return true;
-                    }
+                    if (gameState[row][col] === player && gameState[row + 1][col] === player && gameState[row + 2][col] === player && gameState[row + 3][col] === player) return true;
                 }
             }
             for (let row = 0; row < 3; row++) {
                 for (let col = 0; col < 4; col++) {
-                    if (gameState[row][col] === player &&
-                        gameState[row + 1][col + 1] === player &&
-                        gameState[row + 2][col + 2] === player &&
-                        gameState[row + 3][col + 3] === player) {
-                        return true;
-                    }
+                    if (gameState[row][col] === player && gameState[row + 1][col + 1] === player && gameState[row + 2][col + 2] === player && gameState[row + 3][col + 3] === player) return true;
                 }
             }
             for (let row = 3; row < 6; row++) {
                 for (let col = 0; col < 4; col++) {
-                    if (gameState[row][col] === player &&
-                        gameState[row - 1][col + 1] === player &&
-                        gameState[row - 2][col + 2] === player &&
-                        gameState[row - 3][col + 3] === player) {
-                        return true;
-                    }
+                    if (gameState[row][col] === player && gameState[row - 1][col + 1] === player && gameState[row - 2][col + 2] === player && gameState[row - 3][col + 3] === player) return true;
                 }
             }
             return false;
@@ -301,12 +330,7 @@
 
         // Vérifier si la grille est pleine
         function isBoardFull() {
-            for (let row = 0; row < 6; row++) {
-                for (let col = 0; col < 7; col++) {
-                    if (gameState[row][col] === 0) return false;
-                }
-            }
-            return true;
+            return gameState.every(row => row.every(cell => cell !== 0));
         }
 
         // Mettre à jour les scores
@@ -329,19 +353,146 @@
         playIAButton.addEventListener('click', () => {
             resetButton.click();
             isPlayingIA = true;
-            message.textContent = 'Tour du Joueur 1 (Vous) - IA activée';
+            message.textContent = `Tour du Joueur 1 (Vous) - IA ${iaLevelSelect.value}`;
         });
 
-        // IA : choix aléatoire
-        function iaPlay() {
+        // IA avec différents niveaux
+        function iaPlay(level) {
             let availableColumns = [];
             for (let col = 0; col < 7; col++) {
                 if (gameState[0][col] === 0) availableColumns.push(col);
             }
-            if (availableColumns.length > 0) {
+            if (availableColumns.length === 0) return;
+
+            if (level === 'easy') {
                 const randomCol = availableColumns[Math.floor(Math.random() * availableColumns.length)];
                 dropPiece(randomCol);
+            } else if (level === 'normal') {
+                for (let col of availableColumns) {
+                    let tempState = JSON.parse(JSON.stringify(gameState));
+                    for (let row = 5; row >= 0; row--) {
+                        if (tempState[row][col] === 0) {
+                            tempState[row][col] = 1;
+                            if (checkWin(1)) {
+                                dropPiece(col);
+                                return;
+                            }
+                            break;
+                        }
+                    }
+                }
+                const randomCol = availableColumns[Math.floor(Math.random() * availableColumns.length)];
+                dropPiece(randomCol);
+            } else if (level === 'hard') {
+                dropPiece(minimax(gameState, 3, true)[1]);
+            } else if (level === 'extreme') {
+                dropPiece(minimaxAlphaBeta(gameState, 5, -Infinity, Infinity, true)[1]);
             }
+        }
+
+        // Algorithme Minimax (Difficile)
+        function minimax(state, depth, isMaximizing) {
+            if (depth === 0 || checkWin(1) || checkWin(2) || isBoardFull()) {
+                return [evaluate(state), null];
+            }
+            let bestCol = null;
+            if (isMaximizing) {
+                let maxEval = -Infinity;
+                for (let col = 0; col < 7; col++) {
+                    if (state[0][col] === 0) {
+                        let newState = JSON.parse(JSON.stringify(state));
+                        for (let row = 5; row >= 0; row--) {
+                            if (newState[row][col] === 0) {
+                                newState[row][col] = 2;
+                                let evalScore = minimax(newState, depth - 1, false)[0];
+                                if (evalScore > maxEval) {
+                                    maxEval = evalScore;
+                                    bestCol = col;
+                                }
+                                break;
+                            }
+                        }
+                    }
+                }
+                return [maxEval, bestCol];
+            } else {
+                let minEval = Infinity;
+                for (let col = 0; col < 7; col++) {
+                    if (state[0][col] === 0) {
+                        let newState = JSON.parse(JSON.stringify(state));
+                        for (let row = 5; row >= 0; row--) {
+                            if (newState[row][col] === 0) {
+                                newState[row][col] = 1;
+                                let evalScore = minimax(newState, depth - 1, true)[0];
+                                if (evalScore < minEval) {
+                                    minEval = evalScore;
+                                    bestCol = col;
+                                }
+                                break;
+                            }
+                        }
+                    }
+                }
+                return [minEval, bestCol];
+            }
+        }
+
+        // Algorithme Minimax avec élagage alpha-bêta (Extrême)
+        function minimaxAlphaBeta(state, depth, alpha, beta, isMaximizing) {
+            if (depth === 0 || checkWin(1) || checkWin(2) || isBoardFull()) {
+                return [evaluate(state), null];
+            }
+            let bestCol = null;
+            if (isMaximizing) {
+                let maxEval = -Infinity;
+                for (let col = 0; col < 7; col++) {
+                    if (state[0][col] === 0) {
+                        let newState = JSON.parse(JSON.stringify(state));
+                        for (let row = 5; row >= 0; row--) {
+                            if (newState[row][col] === 0) {
+                                newState[row][col] = 2;
+                                let evalScore = minimaxAlphaBeta(newState, depth - 1, alpha, beta, false)[0];
+                                if (evalScore > maxEval) {
+                                    maxEval = evalScore;
+                                    bestCol = col;
+                                }
+                                alpha = Math.max(alpha, evalScore);
+                                if (beta <= alpha) break;
+                                break;
+                            }
+                        }
+                    }
+                }
+                return [maxEval, bestCol];
+            } else {
+                let minEval = Infinity;
+                for (let col = 0; col < 7; col++) {
+                    if (state[0][col] === 0) {
+                        let newState = JSON.parse(JSON.stringify(state));
+                        for (let row = 5; row >= 0; row--) {
+                            if (newState[row][col] === 0) {
+                                newState[row][col] = 1;
+                                let evalScore = minimaxAlphaBeta(newState, depth - 1, alpha, beta, true)[0];
+                                if (evalScore < minEval) {
+                                    minEval = evalScore;
+                                    bestCol = col;
+                                }
+                                beta = Math.min(beta, evalScore);
+                                if (beta <= alpha) break;
+                                break;
+                            }
+                        }
+                    }
+                }
+                return [minEval, bestCol];
+            }
+        }
+
+        // Évaluation de la grille
+        function evaluate(state) {
+            if (checkWin(2)) return 1000;
+            if (checkWin(1)) return -1000;
+            return 0; // Simplifié pour cet exemple
         }
 
         // Créer une partie en ligne
@@ -358,7 +509,7 @@
                 status: 'waiting'
             };
             set(gameRef, gameData).then(() => {
-                message.textContent = `Partie créée (ID: ${currentGameId}), en attente d’un joueur...`;
+                message.textContent = `Partie créée (ID: ${currentGameId}) - En attente d’un joueur...`;
                 listenToGameState();
             });
         });
@@ -375,13 +526,11 @@
                 update(gameRef, {
                     player2: currentUser.uid,
                     status: 'playing'
-                }).then(() => {
-                    listenToGameState();
-                });
+                }).then(() => listenToGameState());
             }, { onlyOnce: true });
         });
 
-        // Écouter les changements dans l’état de la partie
+        // Écouter l’état de la partie
         function listenToGameState() {
             if (!currentGameId) return;
             const gameRef = ref(realtimeDb, `games/${currentGameId}`);
@@ -393,25 +542,23 @@
                 updateGrid();
                 message.textContent = `Tour du Joueur ${currentPlayer}`;
                 if (game.status === 'waiting') {
-                    message.textContent = 'En attente d’un deuxième joueur...';
+                    message.textContent = `En attente d’un joueur (ID: ${currentGameId})...`;
                 }
             });
         }
 
-        // Mettre à jour l’état de la partie dans Firebase
+        // Mettre à jour l’état dans Firebase
         function updateGameStateInFirebase() {
             if (!currentGameId) return;
             const gameRef = ref(realtimeDb, `games/${currentGameId}`);
-            update(gameRef, {
-                gameState: gameState,
-                currentPlayer: currentPlayer
-            });
+            update(gameRef, { gameState, currentPlayer });
         }
 
-        // Ajouter un ami
-        addFriendButton.addEventListener('click', () => {
-            friendForm.style.display = 'block';
+        // Gérer les amis
+        showFriendsButton.addEventListener('click', () => {
+            friendSection.style.display = friendSection.style.display === 'none' ? 'block' : 'none';
         });
+
         submitFriendButton.addEventListener('click', () => {
             const friendId = friendIdInput.value;
             if (!friendId) return alert('Entrez un ID valide');
@@ -419,10 +566,34 @@
                 addedAt: serverTimestamp()
             }).then(() => {
                 alert('Ami ajouté !');
-                friendForm.style.display = 'none';
                 friendIdInput.value = '';
+                loadFriends();
             }).catch(error => alert(error.message));
         });
+
+        async function loadFriends() {
+            friendList.innerHTML = '';
+            const friendsSnapshot = await getDocs(collection(db, 'friends', currentUser.uid, 'list'));
+            friendsSnapshot.forEach(doc => {
+                const friendId = doc.id;
+                const friendItem = document.createElement('div');
+                friendItem.classList.add('friend-item');
+                friendItem.innerHTML = `
+                    <span>${friendId}</span>
+                    <button onclick="inviteFriend('${friendId}')">Inviter</button>
+                `;
+                friendList.appendChild(friendItem);
+            });
+        }
+
+        window.inviteFriend = function(friendId) {
+            if (!currentGameId) {
+                createGameButton.click();
+                setTimeout(() => alert(`Invitez votre ami ${friendId} avec cet ID : ${currentGameId}`), 500);
+            } else {
+                alert(`Invitez votre ami ${friendId} avec cet ID : ${currentGameId}`);
+            }
+        };
     </script>
 </body>
 </html>
